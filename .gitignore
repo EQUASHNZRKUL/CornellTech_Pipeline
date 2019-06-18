@@ -8,6 +8,11 @@ Assets/AssetStoreTools*
 Assets/OpenCVForUnity*
 Assets/Textures*
 Assets/Materials*
+Assets/Animation*
+Assets/Meshes*
+Assets/Prefabs*
+*.jpg*
+*.png*
 
 # Visual Studio 2015 cache directory
 /.vs/
@@ -42,3 +47,4 @@ sysinfo.txt
 *.apk
 *.unitypackage
 .DS_Store
+LICENSE.md
