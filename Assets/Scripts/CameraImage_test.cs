@@ -25,6 +25,9 @@ public class CameraImage_test : MonoBehaviour
     public Mat imageMat = new Mat(480, 640, CvType.CV_8UC1);
     public Mat edgeMat = new Mat(480, 640, CvType.CV_8UC1);
     public Mat outMat = new Mat(480, 640, CvType.CV_8UC1);
+
+    public Mat circMat = new Mat(3, 5, CvType.CV_8UC1);
+
     public Texture2D m_Texture;
 
     private ScreenOrientation? m_CachedOrientation = null;
@@ -71,6 +74,20 @@ public class CameraImage_test : MonoBehaviour
 
         Imgproc.Canny(imageMat, edgeMat, 90, 150);
         outMat = edgeMat;
+
+        Imgproc.HoughCircles(imageMat, circMat, Imgproc.HOUGH_GRADIENT, 1.0, 20.0);
+
+        Debug.LogFormat("circMat.col(0)[0]: ({0}, {1}, {2})", 
+        circMat.get(0, 0)[0], circMat.get(0, 0)[1], circMat.get(0, 0)[2]);
+        Debug.LogFormat("Circle 1: {0} x {1} -- {2}", 
+        circMat.get(0, 0), circMat.get(0, 1), circMat.get(0, 2));
+        // for (int i = 0; i < 5; i++)
+        // {
+        //     Point center = Point(circMat[i][0], circMat[i][1]);
+        //     int radius = circMat[i][2];
+        //     circle(imageMat, center, 3, Scalar(0, 255, 0), -1, 8);
+        //     circle(imageMat, center, radius, Scalar(0, 0, 255), 3, 8);
+        // }
 
         // Debug.LogFormat("Mat Dimensions: {0} x {1}", imageMat.cols(), imageMat.rows());
     }
@@ -131,21 +148,14 @@ public class CameraImage_test : MonoBehaviour
             Utils.matToTexture2D(outMat, m_Texture, true, 0);
         }
 
-        // if (m_CachedOrientation == null || m_CachedOrientation != Screen.orientation)
-        // {
-        //     // TODO: Change this line to an int. 
-        //     m_CachedOrientation = Screen.orientation;
-        //     ConfigureRawImageInSpace(img_dim);
-        // }
-
-        ConfigureRawImageInSpace(img_dim);
+        if (m_CachedOrientation == null || m_CachedOrientation != Screen.orientation)
+        {
+            m_CachedOrientation = Screen.orientation;
+            ConfigureRawImageInSpace(img_dim);
+        }
 
         Debug.LogFormat("Raw Image Coords: {0}\n Raw Image Scale: {1}", 
             m_RawImage.transform.position, m_RawImage.transform.localScale);
-
-
-        // m_Texture.Resize(Screen.width, Screen.height);
-        // m_Texture.Apply();
 
         m_RawImage.texture = (Texture) m_Texture;
         Debug.Log(m_Texture.GetPixel(300, 300));
