@@ -77,19 +77,22 @@ public class CameraImage_test : MonoBehaviour
         Imgproc.Canny(imageMat, edgeMat, 90, 150);
         outMat = edgeMat;
 
-        // Imgproc.HoughCircles(imageMat, circMat, Imgproc.HOUGH_GRADIENT, 1.0, 20.0);
+        Imgproc.HoughCircles(imageMat, circMat, Imgproc.HOUGH_GRADIENT, 1.0, 20.0);
 
-        // Debug.LogFormat("circMat.at<int>(0, 0): {0}", circMat.ToString());
-        // Debug.Log(circMat.size());
+        Debug.LogFormat("Circle Metadata {0}", circMat.ToString());
+        Debug.Log(circMat.size());
 
-        // if (circMat.size() == null_size)
-        // {
-        //     Debug.Log("No circles found");
-        // }
-        // else
-        // {
-        //     Point center = Pooint
-        // }
+        if (circMat.size() == null_size)
+        {
+            Debug.Log("No circles found");
+        }
+        else
+        {
+            double[] c_data = circMat.get(0, 0);
+            Debug.LogFormat("Circle Center: {0} x {1} \n Circle Radius: {2}", c_data[0], c_data[1], c_data[2]);
+        }
+
+        Debug.Log(circMat.size().width);
 
         // Debug.LogFormat("Circle 1: {0} x {1} -- {2}", 
         // circMat.get(0, 0)[0], circMat.get(0, 1)[0], circMat.get(0, 2)[0]);
