@@ -27,6 +27,8 @@ public class CameraImage_test : MonoBehaviour
     public Mat outMat = new Mat(480, 640, CvType.CV_8UC1);
 
     public Mat circMat = new Mat(3, 5, CvType.CV_8UC1);
+    private Size null_size = new Size(3.0, 5.0);
+    // public Mat circMat = null;
 
     public Texture2D m_Texture;
 
@@ -75,12 +77,22 @@ public class CameraImage_test : MonoBehaviour
         Imgproc.Canny(imageMat, edgeMat, 90, 150);
         outMat = edgeMat;
 
-        Imgproc.HoughCircles(imageMat, circMat, Imgproc.HOUGH_GRADIENT, 1.0, 20.0);
+        // Imgproc.HoughCircles(imageMat, circMat, Imgproc.HOUGH_GRADIENT, 1.0, 20.0);
 
-        Debug.LogFormat("circMat.col(0)[0]: ({0}, {1}, {2})", 
-        circMat.get(0, 0)[0], circMat.get(0, 0)[1], circMat.get(0, 0)[2]);
-        Debug.LogFormat("Circle 1: {0} x {1} -- {2}", 
-        circMat.get(0, 0), circMat.get(0, 1), circMat.get(0, 2));
+        // Debug.LogFormat("circMat.at<int>(0, 0): {0}", circMat.ToString());
+        // Debug.Log(circMat.size());
+
+        // if (circMat.size() == null_size)
+        // {
+        //     Debug.Log("No circles found");
+        // }
+        // else
+        // {
+        //     Point center = Pooint
+        // }
+
+        // Debug.LogFormat("Circle 1: {0} x {1} -- {2}", 
+        // circMat.get(0, 0)[0], circMat.get(0, 1)[0], circMat.get(0, 2)[0]);
         // for (int i = 0; i < 5; i++)
         // {
         //     Point center = Point(circMat[i][0], circMat[i][1]);
@@ -154,12 +166,12 @@ public class CameraImage_test : MonoBehaviour
             ConfigureRawImageInSpace(img_dim);
         }
 
-        Debug.LogFormat("Raw Image Coords: {0}\n Raw Image Scale: {1}", 
-            m_RawImage.transform.position, m_RawImage.transform.localScale);
+        // Debug.LogFormat("Raw Image Coords: {0}\n Raw Image Scale: {1}", 
+        //     m_RawImage.transform.position, m_RawImage.transform.localScale);
 
         m_RawImage.texture = (Texture) m_Texture;
-        Debug.Log(m_Texture.GetPixel(300, 300));
-        Debug.LogFormat("\n Texture Dimensions: {0} x {1}",
-            m_Texture.width, m_Texture.height);
+        // Debug.Log(m_Texture.GetPixel(300, 300));
+        // Debug.LogFormat("\n Texture Dimensions: {0} x {1}",
+        //     m_Texture.width, m_Texture.height);
     }
 }
