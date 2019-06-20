@@ -76,7 +76,7 @@ public class Hough_test : MonoBehaviour
         outMat = imageMat;
 
         // Imgproc.Canny(imageMat, edgeMat, 90, 150);
-        Imgproc.HoughCircles(imageMat, circMat, Imgproc.HOUGH_GRADIENT, 1.0, 20.0);
+        Imgproc.HoughCircles(imageMat, circMat, Imgproc.HOUGH_GRADIENT, 2.0, 50.0);
 
         if (circMat.size() == null_size)
         {
