@@ -24,9 +24,11 @@ public class Erosion_test : MonoBehaviour
 {
     public Mat imageMat = new Mat(480, 640, CvType.CV_8UC1);
     public Mat threshMat = new Mat(480, 640, CvType.CV_8UC1);
+    public Mat erodeMat = new Mat(480, 640, CvType.CV_8UC1);
     public Mat outMat = new Mat(480, 640, CvType.CV_8UC1);
 
-    public double THRESH_VAL = 127.0;
+    public double THRESH_VAL = 170.0;
+    private Mat struct_elt = new Mat (3, 3, CvType.CV_8UC1);
 
     public Texture2D m_Texture;
 
@@ -83,8 +85,11 @@ public class Erosion_test : MonoBehaviour
         // Imgproc.Canny(imageMat, edgeMat, 90, 150);
         // Imgproc.HoughCircles(imageMat, circMat, Imgproc.HOUGH_GRADIENT, DP_CONST, 100.0);
         Imgproc.threshold(imageMat, threshMat, THRESH_VAL, 255.0, Imgproc.THRESH_BINARY_INV);
+        
+        struct_elt = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, 3);
+        Imgproc.erode(threshMat, erodeMat, struct_elt);
 
-        outMat = threshMat;
+        outMat = erodeMat;
     }
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
