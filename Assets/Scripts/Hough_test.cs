@@ -78,9 +78,6 @@ public class Hough_test : MonoBehaviour
         // Imgproc.Canny(imageMat, edgeMat, 90, 150);
         Imgproc.HoughCircles(imageMat, circMat, Imgproc.HOUGH_GRADIENT, 1.0, 20.0);
 
-        // Debug.LogFormat("Circle Metadata {0}", circMat.ToString());
-        // Debug.Log(circMat.size());
-
         if (circMat.size() == null_size)
         {
             Debug.Log("No circles found");
@@ -91,21 +88,8 @@ public class Hough_test : MonoBehaviour
             Debug.LogFormat("Circle Center: {0} x {1} \n Circle Radius: {2}", c_data[0], c_data[1], c_data[2]);
             Imgproc.circle(outMat, new Point(c_data[0], c_data[1]), (int) c_data[2], new Scalar(0.0, 0.0, 255.0));
         }
-        // Imgproc.circle(outMat, new Point(300.0, 300.0), 30, new Scalar(0.0, 0.0, 255.0));
 
         Debug.Log(circMat.size().width);
-
-        // Debug.LogFormat("Circle 1: {0} x {1} -- {2}", 
-        // circMat.get(0, 0)[0], circMat.get(0, 1)[0], circMat.get(0, 2)[0]);
-        // for (int i = 0; i < 5; i++)
-        // {
-        //     Point center = Point(circMat[i][0], circMat[i][1]);
-        //     int radius = circMat[i][2];
-        //     circle(imageMat, center, 3, Scalar(0, 255, 0), -1, 8);
-        //     circle(imageMat, center, radius, Scalar(0, 0, 255), 3, 8);
-        // }
-
-        // Debug.LogFormat("Mat Dimensions: {0} x {1}", imageMat.cols(), imageMat.rows());
     }
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
