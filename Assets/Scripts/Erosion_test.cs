@@ -31,6 +31,7 @@ public class Erosion_test : MonoBehaviour
     private Mat struct_elt = new Mat (3, 3, CvType.CV_8UC1);
 
     public Texture2D m_Texture;
+    public Texture2D e_Texture;
 
     private ScreenOrientation? m_CachedOrientation = null;
 
@@ -48,6 +49,14 @@ public class Erosion_test : MonoBehaviour
     {
         get { return m_RawImage; }
         set { m_RawImage = value; }
+    }
+
+    [SerializeField]
+    RawImage e_RawImage;
+    public RawImage erodeImage 
+    {
+        get { return e_RawImage; }
+        set { e_RawImage = value; }
     }
 
     [SerializeField]
@@ -80,10 +89,6 @@ public class Erosion_test : MonoBehaviour
     {
         Utils.copyToMat(greyscale, imageMat);
 
-        // outMat = imageMat;
-
-        // Imgproc.Canny(imageMat, edgeMat, 90, 150);
-        // Imgproc.HoughCircles(imageMat, circMat, Imgproc.HOUGH_GRADIENT, DP_CONST, 100.0);
         Imgproc.threshold(imageMat, threshMat, THRESH_VAL, 255.0, Imgproc.THRESH_BINARY_INV);
         
         struct_elt = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(3, 3));
@@ -91,6 +96,28 @@ public class Erosion_test : MonoBehaviour
 
         outMat = erodeMat;
     }
+
+    // void ConfigureRawImageInSpace(Vector2 img_dim)
+    // {
+    //     Vector2 ScreenDimension = new Vector2(Screen.width, Screen.height);
+    //     int scr_w = Screen.width;
+    //     int scr_h = Screen.height; 
+
+    //     float img_w = img_dim.x;
+    //     float img_h = img_dim.y;
+
+    //     float w_ratio = (float)scr_w/img_w;
+    //     float h_ratio = (float)scr_h/img_h;
+    //     float scale = Math.Max(w_ratio, h_ratio);
+
+    //     Debug.LogFormat("Screen Dimensions: {0} x {1}\n Image Dimensions: {2} x {3}\n Ratios: {4}, {5}", 
+    //         scr_w, scr_h, img_w, img_h, w_ratio, h_ratio);
+    //     Debug.LogFormat("RawImage Rect: {0}", m_RawImage.uvRect);
+
+    //     m_RawImage.SetNativeSize();
+    //     m_RawImage.transform.position = new Vector3(scr_w/2, scr_h/2, 0.0f);
+    //     m_RawImage.transform.localScale = new Vector3(scale, scale, 0.0f);
+    // }
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
     {
@@ -110,8 +137,12 @@ public class Erosion_test : MonoBehaviour
         Debug.LogFormat("RawImage Rect: {0}", m_RawImage.uvRect);
 
         m_RawImage.SetNativeSize();
-        m_RawImage.transform.position = new Vector3(scr_w/2, scr_h/2, 0.0f);
-        m_RawImage.transform.localScale = new Vector3(scale, scale, 0.0f);
+        m_RawImage.transform.position = new Vector3(scr_w/2, scr_h/4, 0.0f);
+        m_RawImage.transform.localScale = new Vector3(scale/2, scale/2, 0.0f);
+
+        e_RawImage.SetNativeSize();
+        e_RawImage.transform.position = new Vector3(scr_w/2, 3*scr_h/4, 0.0f);
+        e_RawImage.transform.localScale = new Vector3(scale/2, scale/2, 0.0f);
     }
 
     void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
@@ -128,10 +159,11 @@ public class Erosion_test : MonoBehaviour
         
         XRCameraImagePlane greyscale = image.GetPlane(0);
 
-        if (m_Texture == null || m_Texture.width != image.width || m_Texture.height != image.height)
+        if (m_Texture == null || m_Texture.width != image.width)
         {
             var format = TextureFormat.RGBA32;
             m_Texture = new Texture2D(image.width, image.height, format, false);
+            e_Texture = new Texture2D(image.width, image.height, format, false);
         }
 
         image.Dispose();
@@ -141,8 +173,10 @@ public class Erosion_test : MonoBehaviour
             IntPtr greyPtr = (IntPtr) greyscale.data.GetUnsafePtr();
             ComputerVisionAlgo(greyPtr);
             Utils.matToTexture2D(outMat, m_Texture, true, 0);
+            Utils.matToTexture2D(erodeMat, e_Texture, false, 0);
         }
 
+        Debug.Log(m_CachedOrientation);
         if (m_CachedOrientation == null || m_CachedOrientation != Screen.orientation)
         {
             // TODO: Debug why doesn't initiate with ConfigRawimage(). The null isn't triggering here. Print cached Orientation
@@ -151,6 +185,7 @@ public class Erosion_test : MonoBehaviour
         }
 
         m_RawImage.texture = (Texture) m_Texture;
+        e_RawImage.texture = (Texture) e_Texture;
 
         // double[] c_data = circMat.get(0, 0);
         // m_ImageInfo.text = string.Format("Circle Count: {0}\n Circle[0]: {1} x {2} -- {3}", 
