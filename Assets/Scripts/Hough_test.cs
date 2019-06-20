@@ -50,6 +50,14 @@ public class Hough_test : MonoBehaviour
         set { m_RawImage = value; }
     }
 
+    [SerializeField]
+    Text m_ImageInfo;
+    public Text imageInfo
+    {
+        get { return m_ImageInfo; }
+        set { m_ImageInfo = value; }
+    }
+
     void Awake()
     {
         Debug.Log("StartTest");
@@ -85,11 +93,8 @@ public class Hough_test : MonoBehaviour
         else
         {
             double[] c_data = circMat.get(0, 0);
-            Debug.LogFormat("Circle Center: {0} x {1} \n Circle Radius: {2}", c_data[0], c_data[1], c_data[2]);
             Imgproc.circle(outMat, new Point(c_data[0], c_data[1]), (int) c_data[2], new Scalar(0.0, 0.0, 255.0));
         }
-
-        Debug.Log(circMat.size().width);
     }
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
@@ -150,5 +155,9 @@ public class Hough_test : MonoBehaviour
         }
 
         m_RawImage.texture = (Texture) m_Texture;
+
+        double[] c_data = circMat.get(0, 0);
+        m_ImageInfo.text = string.Format("Circle Count: {0}\n Circle[0]: {1} x {2} -- {3}", 
+        circMat.size().width, c_data[0], c_data[1], c_data[2]);
     }
 }
