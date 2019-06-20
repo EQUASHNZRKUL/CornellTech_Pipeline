@@ -419,6 +419,7 @@ GameObject:
   m_Component:
   - component: {fileID: 515354193}
   - component: {fileID: 515354192}
+  - component: {fileID: 515354194}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -433,7 +434,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 515354191}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4fd7336b67f6b44bb8ebc92ffb3138d0, type: 3}
   m_Name: 
@@ -455,6 +456,21 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &515354194
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 515354191}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a374a1cca55d46d69e81ddc885c38c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Texture: {fileID: 0}
+  m_ARCameraManager: {fileID: 282840816}
+  m_RawImage: {fileID: 1669868212}
 --- !u!1 &1015722065
 GameObject:
   m_ObjectHideFlags: 0

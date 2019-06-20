@@ -76,22 +76,9 @@ public class LoG_test : MonoBehaviour
     {
         Utils.copyToMat(greyscale, imageMat);
         Imgproc.GaussianBlur(imageMat, gaussMat, GAUSS_SIZE, GAUSS_SIGMA, GAUSS_SIGMA);
-        Imgproc.Laplacian(gaussMat, logMat, CvType.CV_16SC1, 5);
-        Core.convertScaleAbs(outMat, logMat);
-
-
-        if (circMat.size() == null_size)
-        {
-            Debug.Log("No circles found");
-        }
-        else
-        {
-            double[] c_data = circMat.get(0, 0);
-            Debug.LogFormat("Circle Center: {0} x {1} \n Circle Radius: {2}", c_data[0], c_data[1], c_data[2]);
-            Imgproc.circle(outMat, new Point(c_data[0], c_data[1]), (int) c_data[2], new Scalar(0.0, 0.0, 255.0));
-        }
-
-        Debug.Log(circMat.size().width);
+        Imgproc.Laplacian(gaussMat, logMat, CvType.CV_8UC1, 5);
+        logMat = logMat * GAUSS_SIGMA;
+        outMat = logMat;
     }
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
