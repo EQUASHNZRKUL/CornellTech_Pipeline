@@ -25,6 +25,7 @@ public class Erosion_test : MonoBehaviour
     public Mat imageMat = new Mat(480, 640, CvType.CV_8UC1);
     public Mat threshMat = new Mat(480, 640, CvType.CV_8UC1);
     public Mat erodeMat = new Mat(480, 640, CvType.CV_8UC1);
+    public Mat dilMat = new Mat(480, 640, CvType.CV_8UC1);
     public Mat outMat = new Mat(480, 640, CvType.CV_8UC1);
 
     public double THRESH_VAL = 170.0;
@@ -91,10 +92,12 @@ public class Erosion_test : MonoBehaviour
 
         Imgproc.threshold(imageMat, threshMat, THRESH_VAL, 255.0, Imgproc.THRESH_BINARY_INV);
         
-        struct_elt = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(3, 3));
+        struct_elt = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(8, 8));
         Imgproc.erode(threshMat, erodeMat, struct_elt);
-
-        outMat = erodeMat;
+        Imgproc.dilate(erodeMat, dilMat, struct_elt);
+        
+        erodeMat = dilMat;
+        outMat = threshMat;
     }
 
     // void ConfigureRawImageInSpace(Vector2 img_dim)
