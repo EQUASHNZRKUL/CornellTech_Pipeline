@@ -86,7 +86,7 @@ public class Erosion_test : MonoBehaviour
         // Imgproc.HoughCircles(imageMat, circMat, Imgproc.HOUGH_GRADIENT, DP_CONST, 100.0);
         Imgproc.threshold(imageMat, threshMat, THRESH_VAL, 255.0, Imgproc.THRESH_BINARY_INV);
         
-        struct_elt = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, 3);
+        struct_elt = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(3, 3));
         Imgproc.erode(threshMat, erodeMat, struct_elt);
 
         outMat = erodeMat;
