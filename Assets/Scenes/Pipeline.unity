@@ -519,6 +519,7 @@ MonoBehaviour:
   m_ARCameraManager: {fileID: 282840816}
   m_RawImage: {fileID: 1669868212}
   m_ImageInfo: {fileID: 622398035}
+  m_Slider: {fileID: 1517749549}
 --- !u!4 &515354193
 Transform:
   m_ObjectHideFlags: 0
@@ -917,13 +918,24 @@ MonoBehaviour:
   m_FillRect: {fileID: 1633228817}
   m_HandleRect: {fileID: 301640175}
   m_Direction: 0
-  m_MinValue: 0
-  m_MaxValue: 1
+  m_MinValue: 1
+  m_MaxValue: 5
   m_WholeNumbers: 0
-  m_Value: 0
+  m_Value: 1
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 515354192}
+        m_MethodName: OnSliderValueChanged
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_TypeName: UnityEngine.UI.Slider+SliderEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
 --- !u!1 &1633228816

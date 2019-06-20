@@ -25,10 +25,9 @@ public class Hough_test : MonoBehaviour
     public Mat imageMat = new Mat(480, 640, CvType.CV_8UC1);
     public Mat edgeMat = new Mat(480, 640, CvType.CV_8UC1);
     public Mat outMat = new Mat(480, 640, CvType.CV_8UC1);
-
     public Mat circMat = new Mat(3, 5, CvType.CV_8UC1);
     private Size null_size = new Size(3.0, 5.0);
-    // public Mat circMat = null;
+    private double DP_CONST = 1.0;
 
     public Texture2D m_Texture;
 
@@ -58,6 +57,15 @@ public class Hough_test : MonoBehaviour
         set { m_ImageInfo = value; }
     }
 
+    [SerializeField]
+    [Tooltip("The slider used to control the scale factor.")]
+    Slider m_Slider;
+    public Slider slider
+    {
+        get { return m_Slider; }
+        set { m_Slider = value; }
+    }
+
     void Awake()
     {
         Debug.Log("StartTest");
@@ -77,6 +85,13 @@ public class Hough_test : MonoBehaviour
             m_ARCameraManager.frameReceived -= OnCameraFrameReceived;
     }
 
+    public void OnSliderValueChanged()
+    {
+        if (slider != null)
+            DP_CONST = slider.value;
+    }
+
+
     void ComputerVisionAlgo(IntPtr greyscale) 
     {
         Utils.copyToMat(greyscale, imageMat);
@@ -84,7 +99,7 @@ public class Hough_test : MonoBehaviour
         outMat = imageMat;
 
         // Imgproc.Canny(imageMat, edgeMat, 90, 150);
-        Imgproc.HoughCircles(imageMat, circMat, Imgproc.HOUGH_GRADIENT, 2.0, 50.0);
+        Imgproc.HoughCircles(imageMat, circMat, Imgproc.HOUGH_GRADIENT, DP_CONST, 100.0);
 
         if (circMat.size() == null_size)
         {
