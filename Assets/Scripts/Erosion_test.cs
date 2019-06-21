@@ -27,14 +27,11 @@ public class Erosion_test : MonoBehaviour
     private Mat threshMat = new Mat(480, 640, CvType.CV_8UC1);
     private Mat erodeMat = new Mat(480, 640, CvType.CV_8UC1);
     private Mat dilMat = new Mat(480, 640, CvType.CV_8UC1);
-
-    // private Mat kMat_in = new Mat(480, 640, CvType.CV_8UC1);
-    // private Mat k_labels = new Mat(1, 2, CvType.CV_8UC1);
-    // private Mat kMat_out = new Mat(2, 1, CvType.CV_8UC1);
     public Mat outMat = new Mat(480, 640, CvType.CV_8UC1);
 
-    public double THRESH_VAL = 170.0;
+    public double THRESH_VAL = 150.0;
     public int K_ITERATIONS = 10;
+    string circparam_path;
     private Mat struct_elt = new Mat (3, 3, CvType.CV_8UC1);
 
     public Texture2D m_Texture;
@@ -69,6 +66,7 @@ public class Erosion_test : MonoBehaviour
     {
         Debug.Log("StartTest");
         Screen.autorotateToLandscapeLeft = true; 
+        circparam_path = Utils.getFilePath("circparams.yml");
     }
 
     void OnEnable()
@@ -88,21 +86,28 @@ public class Erosion_test : MonoBehaviour
     {
         Utils.copyToMat(greyscale, imageMat);
 
-        Imgproc.threshold(imageMat, threshMat, THRESH_VAL, 255.0, Imgproc.THRESH_BINARY_INV);
+        Imgproc.threshold(imageMat, threshMat, THRESH_VAL, 255.0, Imgproc.THRESH_BINARY);
         
-        struct_elt = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(8, 8));
-        Imgproc.erode(threshMat, erodeMat, struct_elt);
-        Imgproc.dilate(erodeMat, dilMat, struct_elt);
+        struct_elt = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(7, 7));
+        
+        // Imgproc.erode(threshMat, erodeMat, struct_elt);
+        // Imgproc.dilate(erodeMat, dilMat, struct_elt);
+        Imgproc.dilate(threshMat, dilMat, struct_elt);
+        Imgproc.erode(dilMat, erodeMat, struct_elt);
 
         MatOfKeyPoint keyMat = new MatOfKeyPoint();
         SimpleBlobDetector detector = SimpleBlobDetector.create();
-        detector.read(Utils.getFilePath("circparams.yml"));
+        detector.read(circparam_path);
 
-        detector.detect(dilMat, keyMat);
+        // detector.detect(dilMat, keyMat);
+        detector.detect(erodeMat, keyMat);
 
         Debug.Log(keyMat.size());
+        // Debug.LogFormat("keyMat.get(0, 0): {0} x {1}", 
+        // keyMat.get(0, 0)[0], keyMat.get(0, 0)[1]);
 
-        Features2d.drawKeypoints(dilMat, keyMat, outMat);
+        // Features2d.drawKeypoints(dilMat, keyMat, outMat);
+        Features2d.drawKeypoints(erodeMat, keyMat, outMat);
     }
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
