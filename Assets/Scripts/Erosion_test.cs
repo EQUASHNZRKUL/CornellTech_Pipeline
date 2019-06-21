@@ -86,20 +86,20 @@ public class Erosion_test : MonoBehaviour
     {
         Utils.copyToMat(greyscale, imageMat);
 
-        Imgproc.threshold(imageMat, threshMat, THRESH_VAL, 255.0, Imgproc.THRESH_BINARY_INV);
+        // Imgproc.threshold(imageMat, threshMat, THRESH_VAL, 255.0, Imgproc.THRESH_BINARY_INV);
         
-        struct_elt = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(7, 7));
+        // struct_elt = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(7, 7));
         
-        Imgproc.erode(threshMat, erodeMat, struct_elt);
-        Imgproc.dilate(erodeMat, dilMat, struct_elt);
+        // Imgproc.erode(threshMat, erodeMat, struct_elt);
+        // Imgproc.dilate(erodeMat, dilMat, struct_elt);
         // Imgproc.dilate(threshMat, dilMat, struct_elt);
         // Imgproc.erode(dilMat, erodeMat, struct_elt);
 
         MatOfKeyPoint keyMat = new MatOfKeyPoint();
         SimpleBlobDetector detector = SimpleBlobDetector.create();
-        // detector.read(circparam_path);
+        detector.read(circparam_path);
 
-        detector.detect(dilMat, keyMat);
+        detector.detect(imageMat, keyMat);
         // detector.detect(erodeMat, keyMat);
 
         Debug.Log(keyMat.size());
