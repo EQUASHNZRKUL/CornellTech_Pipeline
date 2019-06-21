@@ -106,7 +106,7 @@ public class Erosion_test : MonoBehaviour
         // Debug.LogFormat("keyMat.get(0, 0): {0} x {1}", 
         // keyMat.get(0, 0)[0], keyMat.get(0, 0)[1]);
 
-        Features2d.drawKeypoints(dilMat, keyMat, outMat);
+        Features2d.drawKeypoints(imageMat, keyMat, outMat);
         // Features2d.drawKeypoints(erodeMat, keyMat, outMat);
     }
 
