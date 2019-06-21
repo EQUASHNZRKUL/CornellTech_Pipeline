@@ -1,0 +1,17 @@
+%YAML:1.0
+thresholdStep: 10.
+minThreshold: 10.
+maxThreshold: 200.
+
+filterByArea: 1
+minArea: 30
+
+filterByCircularity: 1
+minCircularity: 0.9
+maxCircularity: 1
+
+filterByInertia: 1.
+minInertiaRatio: 0.8
+maxInertiaRatio: 1.
+
+minRepeatability: 

@@ -10,6 +10,7 @@ using OpenCVForUnity;
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.UnityUtils;
 using OpenCVForUnity.ImgprocModule;
+using OpenCVForUnity.Features2dModule;
 
 /// <summary>
 /// Listens for touch events and performs an AR raycast from the screen touch point.
@@ -26,9 +27,10 @@ public class Erosion_test : MonoBehaviour
     private Mat threshMat = new Mat(480, 640, CvType.CV_8UC1);
     private Mat erodeMat = new Mat(480, 640, CvType.CV_8UC1);
     private Mat dilMat = new Mat(480, 640, CvType.CV_8UC1);
-    private Mat kMat_in = new Mat(480, 640, CvType.CV_8UC1);
-    private Mat k_labels = new Mat(1, 2, CvType.CV_8UC1);
-    private Mat kMat_out = new Mat(2, 1, CvType.CV_8UC1);
+
+    // private Mat kMat_in = new Mat(480, 640, CvType.CV_8UC1);
+    // private Mat k_labels = new Mat(1, 2, CvType.CV_8UC1);
+    // private Mat kMat_out = new Mat(2, 1, CvType.CV_8UC1);
     public Mat outMat = new Mat(480, 640, CvType.CV_8UC1);
 
     public double THRESH_VAL = 170.0;
@@ -91,16 +93,16 @@ public class Erosion_test : MonoBehaviour
         struct_elt = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(8, 8));
         Imgproc.erode(threshMat, erodeMat, struct_elt);
         Imgproc.dilate(erodeMat, dilMat, struct_elt);
-        
-        // kMat_in = dilMat;
-        outMat = dilMat;
 
-        Mat centers = new Mat(2, 1, CvType.CV_8UC1);
+        MatOfKeyPoint keyMat = new MatOfKeyPoint();
+        SimpleBlobDetector detector = SimpleBlobDetector.create();
+        detector.read(Utils.getFilePath("circparams.yml"));
 
-        double kmeans = Core.kmeans(outMat, 2, k_labels, new TermCriteria(1, K_ITERATIONS, 0.9), 3, Core.KMEANS_RANDOM_CENTERS, centers);
-        // Debug.LogFormat("kMat_out: {0}x {1}", k_labels.get(0, 0)[0], k_labels.get(1, 0)[0]);
-        Debug.Log(kmeans);
-        Debug.LogFormat("kMat_out: {0}x{1}", centers.get(0, 0)[0], centers.get(1, 0)[0]);
+        detector.detect(dilMat, keyMat);
+
+        Debug.Log(keyMat.size());
+
+        Features2d.drawKeypoints(dilMat, keyMat, outMat);
     }
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
