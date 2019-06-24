@@ -86,7 +86,7 @@ public class Erosion_test : MonoBehaviour
     {
         Utils.copyToMat(greyscale, imageMat);
 
-        // Imgproc.threshold(imageMat, threshMat, THRESH_VAL, 255.0, Imgproc.THRESH_BINARY_INV);
+        threshMat = (Mat.ones(imageMat.rows(), imageMat.cols(), CvType.CV_8UC1) * 255) - imageMat;
         
         // struct_elt = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(7, 7));
         
@@ -97,16 +97,16 @@ public class Erosion_test : MonoBehaviour
 
         MatOfKeyPoint keyMat = new MatOfKeyPoint();
         SimpleBlobDetector detector = SimpleBlobDetector.create();
-        detector.read(circparam_path);
+        // detector.read(circparam_path);
 
-        detector.detect(imageMat, keyMat);
+        detector.detect(threshMat, keyMat);
         // detector.detect(erodeMat, keyMat);
 
         Debug.Log(keyMat.size());
         // Debug.LogFormat("keyMat.get(0, 0): {0} x {1}", 
         // keyMat.get(0, 0)[0], keyMat.get(0, 0)[1]);
 
-        Features2d.drawKeypoints(imageMat, keyMat, outMat);
+        Features2d.drawKeypoints(threshMat, keyMat, outMat);
         // Features2d.drawKeypoints(erodeMat, keyMat, outMat);
     }
 
@@ -161,7 +161,7 @@ public class Erosion_test : MonoBehaviour
             Utils.matToTexture2D(outMat, m_Texture, true, 0);
         }
 
-        Debug.Log(m_CachedOrientation);
+        // Debug.Log(m_CachedOrientation);
         if (m_CachedOrientation == null || m_CachedOrientation != Screen.orientation)
         {
             // TODO: Debug why doesn't initiate with ConfigRawimage(). The null isn't triggering here. Print cached Orientation
