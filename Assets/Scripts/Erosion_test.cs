@@ -98,7 +98,9 @@ public class Erosion_test : MonoBehaviour
 
         MatOfKeyPoint keyMat = new MatOfKeyPoint();
         SimpleBlobDetector detector = SimpleBlobDetector.create();
-        // detector.read(circparam_path);
+
+        // circparam_path = Utils.getFilePath("circparams.yml");
+        // detector.read(Utils.getFilePath("circparams.yml"));
 
         detector.detect(threshMat, keyMat);
 
@@ -108,9 +110,9 @@ public class Erosion_test : MonoBehaviour
 
         Features2d.drawKeypoints(imageMat, keyMat, outMat);
 
-        blob_x = keyMat[0];
-        blob_y = keyMat[1];
-        blob_r = keyMat[2];
+        blob_x = keyMat.get(0, 0)[0];
+        blob_y = keyMat.get(0, 0)[1];
+        blob_r = keyMat.get(0, 0)[2];
     }
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
@@ -135,6 +137,11 @@ public class Erosion_test : MonoBehaviour
         m_RawImage.transform.localScale = new Vector3(scale, scale, 0.0f);
     }
 
+    void SendRaycastToPoint()
+    {
+        
+    }
+
     void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
     {
         // CAMERA IMAGE HANDLING
@@ -157,13 +164,6 @@ public class Erosion_test : MonoBehaviour
 
         image.Dispose();
 
-        // Process the image here: 
-        unsafe {
-            IntPtr greyPtr = (IntPtr) greyscale.data.GetUnsafePtr();
-            ComputerVisionAlgo(greyPtr);
-            Utils.matToTexture2D(outMat, m_Texture, true, 0);
-        }
-
         // Debug.Log(m_CachedOrientation);
         if (m_CachedOrientation == null || m_CachedOrientation != Screen.orientation)
         {
@@ -171,6 +171,15 @@ public class Erosion_test : MonoBehaviour
             m_CachedOrientation = Screen.orientation;
             ConfigureRawImageInSpace(img_dim);
         }
+
+        // Process the image here: 
+        unsafe {
+            IntPtr greyPtr = (IntPtr) greyscale.data.GetUnsafePtr();
+            ComputerVisionAlgo(greyPtr);
+            Utils.matToTexture2D(outMat, m_Texture, true, 0);
+        }
+
+        SendRaycastToPoint();
 
         m_RawImage.texture = (Texture) m_Texture;
 
