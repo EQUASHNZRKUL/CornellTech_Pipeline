@@ -29,6 +29,10 @@ public class Erosion_test : MonoBehaviour
     private Mat dilMat = new Mat(480, 640, CvType.CV_8UC1);
     public Mat outMat = new Mat(480, 640, CvType.CV_8UC1);
 
+    private double blob_x;
+    private double blob_y;
+    private double blob_r;
+
     public double THRESH_VAL = 150.0;
     public int K_ITERATIONS = 10;
     string circparam_path;
@@ -88,26 +92,25 @@ public class Erosion_test : MonoBehaviour
 
         threshMat = (Mat.ones(imageMat.rows(), imageMat.cols(), CvType.CV_8UC1) * 255) - imageMat;
         
-        // struct_elt = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(7, 7));
-        
-        // Imgproc.erode(threshMat, erodeMat, struct_elt);
-        // Imgproc.dilate(erodeMat, dilMat, struct_elt);
-        // Imgproc.dilate(threshMat, dilMat, struct_elt);
-        // Imgproc.erode(dilMat, erodeMat, struct_elt);
+        // TODO: Test circparams.yml
+        // TODO: Tweak circparams.yml if needed
+        // TODO: Obtain relevant data
 
         MatOfKeyPoint keyMat = new MatOfKeyPoint();
         SimpleBlobDetector detector = SimpleBlobDetector.create();
         // detector.read(circparam_path);
 
         detector.detect(threshMat, keyMat);
-        // detector.detect(erodeMat, keyMat);
 
-        Debug.Log(keyMat.size());
-        // Debug.LogFormat("keyMat.get(0, 0): {0} x {1}", 
-        // keyMat.get(0, 0)[0], keyMat.get(0, 0)[1]);
+        Debug.Log(keyMat.size().height == 1);
+        if (keyMat.size().height > 0)
+            Debug.LogFormat("keyMat.get(0, 0): {0} x {1}", keyMat.get(0, 0)[0], keyMat.get(0, 0)[1]);
 
-        Features2d.drawKeypoints(threshMat, keyMat, outMat);
-        // Features2d.drawKeypoints(erodeMat, keyMat, outMat);
+        Features2d.drawKeypoints(imageMat, keyMat, outMat);
+
+        blob_x = keyMat[0];
+        blob_y = keyMat[1];
+        blob_r = keyMat[2];
     }
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
