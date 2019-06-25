@@ -90,12 +90,14 @@ public class Erosion_test : MonoBehaviour
     {
         Utils.copyToMat(greyscale, imageMat);
 
+
         // Inverting Image pixel values
         inMat = (Mat.ones(imageMat.rows(), imageMat.cols(), CvType.CV_8UC1) * 255) - imageMat;
 
         // Creating Detector (Yellow Circle)
         // MatOfKeyPoint keyMat = new MatOfKeyPoint();
         // SimpleBlobDetector detector = SimpleBlobDetector.create();
+
 
         // Creating Detector (Red Circle)
         MatOfKeyPoint keyMat = new MatOfKeyPoint();
@@ -117,6 +119,7 @@ public class Erosion_test : MonoBehaviour
         keyMat.size().height, blob_x, blob_y, blob_r);
 
         Features2d.drawKeypoints(imageMat, keyMat, outMat);
+
     }
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
@@ -141,6 +144,11 @@ public class Erosion_test : MonoBehaviour
         m_RawImage.transform.localScale = new Vector3(scale, scale, 0.0f);
     }
 
+    void SendRaycastToPoint()
+    {
+        
+    }
+
     void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
     {
         // CAMERA IMAGE HANDLING
@@ -163,13 +171,6 @@ public class Erosion_test : MonoBehaviour
 
         image.Dispose();
 
-        // Process the image here: 
-        unsafe {
-            IntPtr greyPtr = (IntPtr) greyscale.data.GetUnsafePtr();
-            ComputerVisionAlgo(greyPtr);
-            Utils.matToTexture2D(outMat, m_Texture, true, 0);
-        }
-
         // Debug.Log(m_CachedOrientation);
         if (m_CachedOrientation == null || m_CachedOrientation != Screen.orientation)
         {
@@ -177,6 +178,15 @@ public class Erosion_test : MonoBehaviour
             m_CachedOrientation = Screen.orientation;
             ConfigureRawImageInSpace(img_dim);
         }
+
+        // Process the image here: 
+        unsafe {
+            IntPtr greyPtr = (IntPtr) greyscale.data.GetUnsafePtr();
+            ComputerVisionAlgo(greyPtr);
+            Utils.matToTexture2D(outMat, m_Texture, true, 0);
+        }
+
+        SendRaycastToPoint();
 
         m_RawImage.texture = (Texture) m_Texture;
     }
