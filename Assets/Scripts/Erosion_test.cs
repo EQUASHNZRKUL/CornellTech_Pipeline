@@ -163,6 +163,7 @@ public class Erosion_test : MonoBehaviour
         
         XRCameraImagePlane greyscale = image.GetPlane(0);
 
+        // Instantiates new m_Texture if necessary
         if (m_Texture == null || m_Texture.width != image.width)
         {
             var format = TextureFormat.RGBA32;
@@ -171,7 +172,7 @@ public class Erosion_test : MonoBehaviour
 
         image.Dispose();
 
-        // Debug.Log(m_CachedOrientation);
+        // Sets orientation if necessary
         if (m_CachedOrientation == null || m_CachedOrientation != Screen.orientation)
         {
             // TODO: Debug why doesn't initiate with ConfigRawimage(). The null isn't triggering here. Print cached Orientation
@@ -186,8 +187,9 @@ public class Erosion_test : MonoBehaviour
             Utils.matToTexture2D(outMat, m_Texture, true, 0);
         }
 
-        SendRaycastToPoint();
-
         m_RawImage.texture = (Texture) m_Texture;
+
+        // Creates 3D object from image processing data
+        SendRaycastToPoint();
     }
 }
