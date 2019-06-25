@@ -24,7 +24,7 @@ using OpenCVForUnity.Features2dModule;
 public class Erosion_test : MonoBehaviour
 {
     public Mat imageMat = new Mat(480, 640, CvType.CV_8UC1);
-    private Mat threshMat = new Mat(480, 640, CvType.CV_8UC1);
+    private Mat inMat = new Mat(480, 640, CvType.CV_8UC1);
     private Mat erodeMat = new Mat(480, 640, CvType.CV_8UC1);
     private Mat dilMat = new Mat(480, 640, CvType.CV_8UC1);
     public Mat outMat = new Mat(480, 640, CvType.CV_8UC1);
@@ -90,20 +90,31 @@ public class Erosion_test : MonoBehaviour
     {
         Utils.copyToMat(greyscale, imageMat);
 
+        // Inverting Image pixel values
+        inMat = (Mat.ones(imageMat.rows(), imageMat.cols(), CvType.CV_8UC1) * 255) - imageMat;
+
+        // Creating Detector (Yellow Circle)
+        // MatOfKeyPoint keyMat = new MatOfKeyPoint();
+        // SimpleBlobDetector detector = SimpleBlobDetector.create();
+
+        // Creating Detector (Red Circle)
         MatOfKeyPoint keyMat = new MatOfKeyPoint();
         SimpleBlobDetector detector = SimpleBlobDetector.create();
-        // detector.read(circparam_path);
+        inMat = imageMat;
+        detector.read(circparam_path);
 
-        detector.detect(imageMat, keyMat);
-
-        Debug.Log(keyMat.size());
-
+        // Finding circles
+        detector.detect(inMat, keyMat);
         if (keyMat.size().height > 0)
         {
             blob_x = keyMat.get(0, 0)[0];
             blob_y = keyMat.get(0, 0)[1];
             blob_r = keyMat.get(0, 0)[2];
         }
+
+        // Visualizing detected circles
+        m_ImageInfo.text = string.Format("Circle Count: {0}\n Circle[0]: {1} x {2} -- {3}", 
+        keyMat.size().height, blob_x, blob_y, blob_r);
 
         Features2d.drawKeypoints(imageMat, keyMat, outMat);
     }
@@ -168,9 +179,5 @@ public class Erosion_test : MonoBehaviour
         }
 
         m_RawImage.texture = (Texture) m_Texture;
-
-        // double[] c_data = circMat.get(0, 0);
-        // m_ImageInfo.text = string.Format("Circle Count: {0}\n Circle[0]: {1} x {2} -- {3}", 
-        // circMat.size().width, c_data[0], c_data[1], c_data[2]);
     }
 }

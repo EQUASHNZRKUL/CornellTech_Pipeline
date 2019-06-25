@@ -13,7 +13,7 @@ minArea: 25.
 maxArea: 50000.
 
 filterByCircularity: true
-minCircularity: 0.9
+minCircularity: 0.95
 maxCircularity: 1.
 
 filterByInertia: true
