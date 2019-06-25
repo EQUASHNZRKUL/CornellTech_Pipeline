@@ -102,8 +102,8 @@ public class Circle_Spawner : MonoBehaviour
         // Creating Detector (Red Circle)
         MatOfKeyPoint keyMat = new MatOfKeyPoint();
         SimpleBlobDetector detector = SimpleBlobDetector.create();
-        // inMat = imageMat;
-        detector.read(circparam_path);
+        inMat = imageMat;
+        // detector.read(circparam_path);
 
         // Finding circles
         detector.detect(imageMat, keyMat);
@@ -116,8 +116,8 @@ public class Circle_Spawner : MonoBehaviour
 
         // Visualizing detected circles
         // m_ImageInfo.text = 
-        Debug.Log(string.Format("Circle Count: {0}\n Circle[0]: {1} x {2} -- {3}", 
-        keyMat.size().height, blob_x, blob_y, blob_r));
+        // Debug.Log(string.Format("Circle Count: {0}\n [IMAGE] blob_x: {1}\n blob_y: {2}\n blob_r: {3}", 
+        // keyMat.size().height, blob_x, blob_y, blob_r));
 
         Features2d.drawKeypoints(imageMat, keyMat, outMat);
     }
@@ -146,7 +146,18 @@ public class Circle_Spawner : MonoBehaviour
 
     void SendRaycastToPoint()
     {
-        
+        float w_ratio = (float)Screen.width/640;
+        float h_ratio = (float)Screen.height/480;
+        float scale = Math.Max(w_ratio, h_ratio);
+
+        // Debug.Log(scale == w_ratio);
+
+        double ray_x = scale * blob_x;
+        double ray_y = 1080 - (3.375f * (blob_y - 80));
+        double ray_r = scale * blob_r;
+
+        // Debug.Log(string.Format("[SCREEN] ray_x: {0}\n ray_y: {1}\n ray_r: {2}", 
+        // ray_x, ray_y, ray_r));
     }
 
     void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
