@@ -1,17 +1,25 @@
 %YAML:1.0
 thresholdStep: 10.
-minThreshold: 10.
-maxThreshold: 200.
+minThreshold: 50.
+maxThreshold: 220.
+minRepeatability: 2.
+minDistBetweenBlobs: 10.
 
-filterByArea: 1
-minArea: 30
+filterByColor: false
+blobColor: 0.
 
-filterByCircularity: 1
+filterByArea: true
+minArea: 25.
+maxArea: 50000.
+
+filterByCircularity: true
 minCircularity: 0.9
-maxCircularity: 1
+maxCircularity: 1.
 
-filterByInertia: 1.
+filterByInertia: true
 minInertiaRatio: 0.8
 maxInertiaRatio: 1.
 
-minRepeatability: 
+filterByConvexity: true
+minConvexity: 0.95
+maxConvexity: 1.
