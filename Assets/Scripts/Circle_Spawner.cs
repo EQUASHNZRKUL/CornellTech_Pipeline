@@ -19,7 +19,6 @@ using OpenCVForUnity.Features2dModule;
 /// If a raycast hits a trackable, the <see cref="placedPrefab"/> is instantiated
 /// and moved to the hit position.
 /// </summary>
-[RequireComponent(typeof(ARRaycastManager))]
 public class Circle_Spawner : MonoBehaviour
 {
     public Mat imageMat = new Mat(480, 640, CvType.CV_8UC1);
