@@ -1,5 +1,5 @@
 using System;
-// using System.Collections.Generic;
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
@@ -19,8 +19,7 @@ using OpenCVForUnity.Features2dModule;
 /// If a raycast hits a trackable, the <see cref="placedPrefab"/> is instantiated
 /// and moved to the hit position.
 /// </summary>
-// [RequireComponent(typeof(ARCameraManager))]
-// [RequireComponent(typeof(RawImage))]
+[RequireComponent(typeof(ARRaycastManager))]
 public class Circle_Spawner : MonoBehaviour
 {
     public Mat imageMat = new Mat(480, 640, CvType.CV_8UC1);
@@ -29,9 +28,9 @@ public class Circle_Spawner : MonoBehaviour
     private Mat dilMat = new Mat(480, 640, CvType.CV_8UC1);
     public Mat outMat = new Mat(480, 640, CvType.CV_8UC1);
 
-    private double blob_x;
-    private double blob_y;
-    private double blob_r;
+    private float blob_x;
+    private float blob_y;
+    private float blob_r;
 
     public double THRESH_VAL = 150.0;
     public int K_ITERATIONS = 10;
@@ -66,11 +65,23 @@ public class Circle_Spawner : MonoBehaviour
         set { m_ImageInfo = value; }
     }
 
+    [SerializeField]
+    [Tooltip("Instantiates this prefab on a gameObject at the touch location.")]
+    GameObject m_PlacedPrefab;
+    public GameObject placedPrefab
+    {
+        get { return m_PlacedPrefab; }
+        set { m_PlacedPrefab = value; }
+    }
+
+    public GameObject spawnedObject { get; private set; }
+
     void Awake()
     {
         Debug.Log("StartTest");
         Screen.autorotateToLandscapeLeft = true; 
         circparam_path = Utils.getFilePath("circparams.yml");
+        m_ARRaycastManager = GetComponent<ARRaycastManager>();
     }
 
     void OnEnable()
@@ -109,9 +120,9 @@ public class Circle_Spawner : MonoBehaviour
         detector.detect(imageMat, keyMat);
         if (keyMat.size().height > 0)
         {
-            blob_x = keyMat.get(0, 0)[0];
-            blob_y = keyMat.get(0, 0)[1];
-            blob_r = keyMat.get(0, 0)[2];
+            blob_x = (float) keyMat.get(0, 0)[0];
+            blob_y = (float) keyMat.get(0, 0)[1];
+            blob_r = (float) keyMat.get(0, 0)[2];
         }
 
         // Visualizing detected circles
@@ -152,12 +163,26 @@ public class Circle_Spawner : MonoBehaviour
 
         // Debug.Log(scale == w_ratio);
 
-        double ray_x = scale * blob_x;
-        double ray_y = 1080 - (3.375f * (blob_y - 80));
-        double ray_r = scale * blob_r;
+        float ray_x = scale * blob_x;
+        float ray_y = 1080.0f - (3.375f * (blob_y - 80.0f));
+        float ray_r = scale * blob_r;
 
         // Debug.Log(string.Format("[SCREEN] ray_x: {0}\n ray_y: {1}\n ray_r: {2}", 
         // ray_x, ray_y, ray_r));
+
+        bool arRayBool = m_ARRaycastManager.Raycast(new Vector2(ray_x, ray_y), s_Hits, TrackableType.PlaneWithinPolygon);
+        if (arRayBool)
+        {
+            var hit = s_Hits[0];
+            if (spawnedObject == null)
+            {
+                spawnedObject = Instantiate(m_PlacedPrefab, hit.pose.position, hit.pose.rotation);
+            }
+            else
+            {
+                spawnedObject.transform.position = hit.pose.position;
+            }
+        }
     }
 
     void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
@@ -213,4 +238,9 @@ public class Circle_Spawner : MonoBehaviour
             m_ImageInfo.text = string.Format("{0}", touch.position);
         }
     }
+    static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
+
+    ARRaycastManager m_ARRaycastManager;
+
+    ARSessionOrigin m_SessionOrigin;
 }
