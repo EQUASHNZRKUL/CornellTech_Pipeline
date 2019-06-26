@@ -27,9 +27,13 @@ public class CV_Controller : MonoBehaviour
     private Mat dilMat = new Mat(480, 640, CvType.CV_8UC1);
     public Mat outMat = new Mat(480, 640, CvType.CV_8UC1);
 
-    public float blob_x;
-    public float blob_y;
-    public float blob_r = -1;
+    private float blob_x;
+    private float blob_y;
+    private float blob_r;
+
+    private float ray_x;
+    private float ray_y;
+    private float ray_r;
 
     public double THRESH_VAL = 150.0;
     public int K_ITERATIONS = 10;
@@ -62,6 +66,16 @@ public class CV_Controller : MonoBehaviour
     {
         get { return m_ImageInfo; }
         set { m_ImageInfo = value; }
+    }
+
+    public Vector2 GetPos()
+    {
+        return new Vector2(ray_x, ray_y);
+    }
+
+    public float GetRad()
+    {
+        return ray_r;
     }
 
     void Awake()
@@ -142,7 +156,7 @@ public class CV_Controller : MonoBehaviour
         m_RawImage.transform.localScale = new Vector3(scale, scale, 0.0f);
     }
 
-    void SendRaycastToPoint()
+    void FindRaycastPoint()
     {
         float w_ratio = (float)Screen.width/640;
         float h_ratio = (float)Screen.height/480;
@@ -156,20 +170,6 @@ public class CV_Controller : MonoBehaviour
 
         // Debug.Log(string.Format("[SCREEN] ray_x: {0}\n ray_y: {1}\n ray_r: {2}", 
         // ray_x, ray_y, ray_r));
-
-        bool arRayBool = m_ARRaycastManager.Raycast(new Vector2(ray_x, ray_y), s_Hits, TrackableType.PlaneWithinPolygon);
-        if (arRayBool)
-        {
-            var hit = s_Hits[0];
-            if (spawnedObject == null)
-            {
-                spawnedObject = Instantiate(m_PlacedPrefab, hit.pose.position, hit.pose.rotation);
-            }
-            else
-            {
-                spawnedObject.transform.position = hit.pose.position;
-            }
-        }
     }
 
     void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
@@ -213,7 +213,7 @@ public class CV_Controller : MonoBehaviour
         m_RawImage.texture = (Texture) m_Texture;
 
         // Creates 3D object from image processing data
-        SendRaycastToPoint();
+        FindRaycastPoint();
 
         // TESTING: verify if blob_x and blob_y correspond to screen coordinates
         if (Input.touchCount <= 0)

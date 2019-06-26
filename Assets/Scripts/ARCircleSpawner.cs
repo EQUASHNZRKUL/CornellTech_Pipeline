@@ -8,7 +8,7 @@ using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 
 [RequireComponent(typeof(ARRaycastManager))]
-public class ARCircleSpawner : MonoBehavior
+public class ARCircleSpawner : MonoBehaviour
 {
     [SerializeField]
     ARCameraManager m_ARCameraManager;
@@ -28,12 +28,15 @@ public class ARCircleSpawner : MonoBehavior
     }
 
     public GameObject spawnedObject { get; private set; }
-    public Circle_Spawner circle_detector; 
+    public GameObject CV_Controller_Object {get; private set; } 
+
+    private CV_Controller m_cv;
 
     void Awake()
     {
         Debug.Log("StartTest");
         m_ARRaycastManager = GetComponent<ARRaycastManager>();
+        m_cv = CV_Controller_Object.GetComponent<CV_Controller>();
     }
 
     void SendRaycastToPoint()
@@ -41,7 +44,9 @@ public class ARCircleSpawner : MonoBehavior
         // Debug.Log(string.Format("[SCREEN] ray_x: {0}\n ray_y: {1}\n ray_r: {2}", 
         // ray_x, ray_y, ray_r));
 
-        bool arRayBool = m_ARRaycastManager.Raycast(new Vector2(circle_detector.ray_x, circle_detector.ray_y), s_Hits, TrackableType.PlaneWithinPolygon);
+        Vector2 ray_pos = m_cv.GetPos();
+
+        bool arRayBool = m_ARRaycastManager.Raycast(ray_pos, s_Hits, TrackableType.PlaneWithinPolygon);
         if (arRayBool)
         {
             var hit = s_Hits[0];
@@ -58,7 +63,9 @@ public class ARCircleSpawner : MonoBehavior
 
     void Update()
     {
-        if (circle_detector.blob_r == -1)
-            return;
+        
     }
+    static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
+
+    ARRaycastManager m_ARRaycastManager;
 }
