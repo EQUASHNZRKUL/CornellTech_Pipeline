@@ -134,6 +134,8 @@ public class CV_Controller : MonoBehaviour
         ray_y = 1080.0f - (3.375f * (blob_y - 80.0f));
         ray_r = scale * blob_r;
 
+        m_ImageInfo.text = string.Format("{0} x {1}", ray_x, ray_y);
+
         // Debug.Log(string.Format("[SCREEN] ray_x: {0}\n ray_y: {1}\n ray_r: {2}", 
         // ray_x, ray_y, ray_r));
     }
@@ -161,16 +163,6 @@ public class CV_Controller : MonoBehaviour
 
         // Creates 3D object from image processing data
         FindRaycastPoint();
-
-        // TESTING: verify if blob_x and blob_y correspond to screen coordinates
-        if (Input.touchCount <= 0)
-            return;
-        Touch touch = Input.GetTouch(0);
-        if (touch.phase == TouchPhase.Began)
-        {
-            // Debug.Log(touch.position);
-            m_ImageInfo.text = string.Format("{0}", touch.position);
-        }
     }
     static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
 
