@@ -55,19 +55,19 @@ public class ARCircleSpawner : MonoBehaviour
         Debug.LogFormat("{0}, {1}", ray_pos, m_cv.GetRad());
 
         bool arRayBool = m_ARRaycastManager.Raycast(ray_pos, s_Hits, TrackableType.PlaneWithinPolygon);
-        bool edgeRayBool = m_ARRaycastManager.Raycast(ray_pos + (new Vector2(m_cv.GetRad(), 0)), e_Hits, TrackableType.PlaneWithinPolygon);
+        // bool edgeRayBool = m_ARRaycastManager.Raycast(ray_pos + (new Vector2(m_cv.GetRad(), 0)), e_Hits, TrackableType.PlaneWithinPolygon);
         Debug.Log(arRayBool);
         if (arRayBool)
         {
             var hit = s_Hits[0];
-            var edge = e_Hits[0];
-            float dist = Vector3.Distance(hit.pose.position, edge.pose.position);
-            Debug.Log(dist);
+            // var edge = e_Hits[0];
+            // float dist = Vector3.Distance(hit.pose.position, edge.pose.position);
+            // Debug.Log(dist);
 
             if (spawnedObject == null)
             {
                 spawnedObject = Instantiate(m_PlacedPrefab, hit.pose.position, hit.pose.rotation);
-                spawnedObject.transform.localScale = spawnedObject.transform.localScale * dist;
+                // spawnedObject.transform.localScale = spawnedObject.transform.localScale * dist;
             }
             else
             {
