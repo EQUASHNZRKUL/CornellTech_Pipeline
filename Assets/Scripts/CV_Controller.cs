@@ -40,24 +40,12 @@ public class CV_Controller : MonoBehaviour
     string circparam_path;
     private Mat struct_elt = new Mat (3, 3, CvType.CV_8UC1);
 
-    public Texture2D m_Texture;
-
-    private ScreenOrientation? m_CachedOrientation = null;
-
     [SerializeField]
     ARCameraManager m_ARCameraManager;
     public ARCameraManager cameraManager
     {
         get {return m_ARCameraManager; }
         set {m_ARCameraManager = value; }
-    }
-
-    [SerializeField]
-    RawImage m_RawImage;
-    public RawImage rawImage 
-    {
-        get { return m_RawImage; }
-        set { m_RawImage = value; }
     }
 
     [SerializeField]
@@ -134,28 +122,6 @@ public class CV_Controller : MonoBehaviour
         Features2d.drawKeypoints(imageMat, keyMat, outMat);
     }
 
-    void ConfigureRawImageInSpace(Vector2 img_dim)
-    {
-        Vector2 ScreenDimension = new Vector2(Screen.width, Screen.height);
-        int scr_w = Screen.width;
-        int scr_h = Screen.height; 
-
-        float img_w = img_dim.x;
-        float img_h = img_dim.y;
-
-        float w_ratio = (float)scr_w/img_w;
-        float h_ratio = (float)scr_h/img_h;
-        float scale = Math.Max(w_ratio, h_ratio);
-
-        Debug.LogFormat("Screen Dimensions: {0} x {1}\n Image Dimensions: {2} x {3}\n Ratios: {4}, {5}", 
-            scr_w, scr_h, img_w, img_h, w_ratio, h_ratio);
-        Debug.LogFormat("RawImage Rect: {0}", m_RawImage.uvRect);
-
-        m_RawImage.SetNativeSize();
-        m_RawImage.transform.position = new Vector3(scr_w/2, scr_h/2, 0.0f);
-        m_RawImage.transform.localScale = new Vector3(scale, scale, 0.0f);
-    }
-
     void FindRaycastPoint()
     {
         float w_ratio = (float)Screen.width/640;
@@ -164,9 +130,9 @@ public class CV_Controller : MonoBehaviour
 
         // Debug.Log(scale == w_ratio);
 
-        float ray_x = scale * blob_x;
-        float ray_y = 1080.0f - (3.375f * (blob_y - 80.0f));
-        float ray_r = scale * blob_r;
+        ray_x = scale * blob_x;
+        ray_y = 1080.0f - (3.375f * (blob_y - 80.0f));
+        ray_r = scale * blob_r;
 
         // Debug.Log(string.Format("[SCREEN] ray_x: {0}\n ray_y: {1}\n ray_r: {2}", 
         // ray_x, ray_y, ray_r));
@@ -174,7 +140,7 @@ public class CV_Controller : MonoBehaviour
 
     void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
     {
-        // CAMERA IMAGE HANDLING
+        // Camera data extraction
         XRCameraImage image;
         if (!cameraManager.TryGetLatestImage(out image))
         {
@@ -183,34 +149,15 @@ public class CV_Controller : MonoBehaviour
         }
 
         Vector2 img_dim = image.dimensions;
-        
         XRCameraImagePlane greyscale = image.GetPlane(0);
 
-        // Instantiates new m_Texture if necessary
-        if (m_Texture == null || m_Texture.width != image.width)
-        {
-            var format = TextureFormat.RGBA32;
-            m_Texture = new Texture2D(image.width, image.height, format, false);
-        }
-
         image.Dispose();
-
-        // Sets orientation if necessary
-        if (m_CachedOrientation == null || m_CachedOrientation != Screen.orientation)
-        {
-            // TODO: Debug why doesn't initiate with ConfigRawimage(). The null isn't triggering here. Print cached Orientation
-            m_CachedOrientation = Screen.orientation;
-            ConfigureRawImageInSpace(img_dim);
-        }
 
         // Process the image here: 
         unsafe {
             IntPtr greyPtr = (IntPtr) greyscale.data.GetUnsafePtr();
             ComputerVisionAlgo(greyPtr);
-            Utils.matToTexture2D(outMat, m_Texture, true, 0);
         }
-
-        m_RawImage.texture = (Texture) m_Texture;
 
         // Creates 3D object from image processing data
         FindRaycastPoint();

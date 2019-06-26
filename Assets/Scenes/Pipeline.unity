@@ -422,9 +422,9 @@ GameObject:
   - component: {fileID: 515354192}
   - component: {fileID: 515354194}
   - component: {fileID: 515354195}
-  - component: {fileID: 515354196}
+  - component: {fileID: 515354197}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: CV_Controller
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -493,7 +493,7 @@ MonoBehaviour:
   m_ARCameraManager: {fileID: 282840816}
   m_RawImage: {fileID: 1669868212}
   m_ImageInfo: {fileID: 519562891}
---- !u!114 &515354196
+--- !u!114 &515354197
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -502,14 +502,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 515354191}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b48e2ca4d353b48ac84055eceb2f579a, type: 3}
+  m_Script: {fileID: 11500000, guid: 61576ce7284d044138ad495d8c417dbf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   THRESH_VAL: 150
   K_ITERATIONS: 10
-  m_Texture: {fileID: 0}
   m_ARCameraManager: {fileID: 282840816}
-  m_RawImage: {fileID: 1669868212}
   m_ImageInfo: {fileID: 519562891}
 --- !u!1 &519562889
 GameObject:
@@ -691,6 +689,10 @@ GameObject:
   m_Component:
   - component: {fileID: 1335839535}
   - component: {fileID: 1335839534}
+  - component: {fileID: 1335839537}
+  - component: {fileID: 1335839536}
+  - component: {fileID: 1335839538}
+  - component: {fileID: 1335839539}
   m_Layer: 0
   m_Name: AR Session Origin
   m_TagString: Untagged
@@ -726,6 +728,63 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1335839536
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1335839533}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: effd15f573e8148b183750fa7796ae16, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_ARCameraManager: {fileID: 282840816}
+  m_PlacedPrefab: {fileID: 1237402283603786, guid: 2e80f2e009b5347149ebaae6d96ddfb8,
+    type: 3}
+  m_CvControllerObject: {fileID: 515354191}
+--- !u!114 &1335839537
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1335839533}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa17d122634046b4a8e23048891fafc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1335839538
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1335839533}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1760703bbd54c04488a8d10600262ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PlanePrefab: {fileID: 1568414836858200, guid: f0e0be81472ff1243aa2afa27e5d0e61,
+    type: 3}
+  m_DetectionMode: -1
+--- !u!114 &1335839539
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1335839533}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ab0e80cee9cc1d44928bfe488dd1e2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PointCloudPrefab: {fileID: 1854016325464908, guid: 0d4f49e744bffd14eb527ba76c9bba12,
+    type: 3}
 --- !u!1 &1669868211
 GameObject:
   m_ObjectHideFlags: 0

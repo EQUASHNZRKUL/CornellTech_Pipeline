@@ -28,7 +28,14 @@ public class ARCircleSpawner : MonoBehaviour
     }
 
     public GameObject spawnedObject { get; private set; }
-    public GameObject CV_Controller_Object {get; private set; } 
+    
+    [SerializeField]
+    GameObject m_CvControllerObject;
+    public GameObject CV_Controller_Object 
+    {
+        get { return m_CvControllerObject; }
+        set { m_CvControllerObject = value; } 
+    } 
 
     private CV_Controller m_cv;
 
@@ -39,14 +46,16 @@ public class ARCircleSpawner : MonoBehaviour
         m_cv = CV_Controller_Object.GetComponent<CV_Controller>();
     }
 
-    void SendRaycastToPoint()
+    void Update()
     {
         // Debug.Log(string.Format("[SCREEN] ray_x: {0}\n ray_y: {1}\n ray_r: {2}", 
         // ray_x, ray_y, ray_r));
 
         Vector2 ray_pos = m_cv.GetPos();
+        Debug.Log(ray_pos);
 
         bool arRayBool = m_ARRaycastManager.Raycast(ray_pos, s_Hits, TrackableType.PlaneWithinPolygon);
+        Debug.Log(arRayBool);
         if (arRayBool)
         {
             var hit = s_Hits[0];
@@ -61,10 +70,6 @@ public class ARCircleSpawner : MonoBehaviour
         }
     }
 
-    void Update()
-    {
-        
-    }
     static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
 
     ARRaycastManager m_ARRaycastManager;
