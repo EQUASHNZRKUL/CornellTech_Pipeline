@@ -27,9 +27,9 @@ public class Circle_Spawner : MonoBehaviour
     private Mat dilMat = new Mat(480, 640, CvType.CV_8UC1);
     public Mat outMat = new Mat(480, 640, CvType.CV_8UC1);
 
-    private float blob_x;
-    private float blob_y;
-    private float blob_r;
+    public float blob_x;
+    public float blob_y;
+    public float blob_r = -1;
 
     public double THRESH_VAL = 150.0;
     public int K_ITERATIONS = 10;
@@ -64,17 +64,6 @@ public class Circle_Spawner : MonoBehaviour
         set { m_ImageInfo = value; }
     }
 
-    [SerializeField]
-    [Tooltip("Instantiates this prefab on a gameObject at the touch location.")]
-    GameObject m_PlacedPrefab;
-    public GameObject placedPrefab
-    {
-        get { return m_PlacedPrefab; }
-        set { m_PlacedPrefab = value; }
-    }
-
-    public GameObject spawnedObject { get; private set; }
-
     void Awake()
     {
         Debug.Log("StartTest");
@@ -94,7 +83,6 @@ public class Circle_Spawner : MonoBehaviour
         if (m_ARCameraManager != null)
             m_ARCameraManager.frameReceived -= OnCameraFrameReceived;
     }
-
 
     void ComputerVisionAlgo(IntPtr greyscale) 
     {
