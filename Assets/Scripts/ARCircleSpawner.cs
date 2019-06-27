@@ -57,7 +57,7 @@ public class ARCircleSpawner : MonoBehaviour
         m_cv = CV_Controller_Object.GetComponent<CV_Controller>();
     }
 
-    void Update()
+    void MarkerSpawn()
     {
         // Debug.Log(string.Format("[SCREEN] ray_x: {0}\n ray_y: {1}\n ray_r: {2}", 
         // ray_x, ray_y, ray_r));
@@ -89,6 +89,11 @@ public class ARCircleSpawner : MonoBehaviour
                 Debug.Log(spawnedObject.transform.localScale);
             }
         }
+    }
+
+    void Update()
+    {
+        MarkerSpawn();
     }
 
     static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
