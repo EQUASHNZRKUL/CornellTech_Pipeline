@@ -134,7 +134,8 @@ public class ARCircleSpawner : MonoBehaviour
                 Debug.Log(face.pose.position);
                 thrownObject = Instantiate(m_ThrownPrefab, cam_transform.position, face.pose.rotation);
                 // Debug.Log(face);
-                thrownObject.GetComponent<Rigidbody>().AddForce(cam_transform.forward * 3);
+                // thrownObject.GetComponent<Rigidbody>().velocity = (cam_transform.forward * 5);
+                thrownObject.GetComponent<Rigidbody>().AddForce(cam_transform.forward * 5);
                 // m_SessionOrigin.MakeContentAppearAt(thrownObject.transform, new Vector3(0,0,0));
             }
         }
