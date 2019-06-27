@@ -63,30 +63,30 @@ public class ARCircleSpawner : MonoBehaviour
         // ray_x, ray_y, ray_r));
 
         Vector2 ray_pos = m_cv.GetPos();
-        Debug.LogFormat("{0}, {1}", ray_pos, m_cv.GetRad());
+        // Debug.LogFormat("{0}, {1}", ray_pos, m_cv.GetRad());
 
         bool arRayBool = m_ARRaycastManager.Raycast(ray_pos, s_Hits, TrackableType.PlaneWithinPolygon);
         bool edgeRayBool = m_ARRaycastManager.Raycast(ray_pos + (new Vector2(m_cv.GetRad(), 0)), e_Hits, TrackableType.PlaneWithinPolygon);
-        Debug.Log(arRayBool);
+        // Debug.Log(arRayBool);
         if (arRayBool)
         {
             var hit = s_Hits[0];
             var edge = e_Hits[0];
             float dist = Vector3.Distance(hit.pose.position, edge.pose.position);
-            Debug.Log(dist);
+            // Debug.Log(dist);
             // Debug.Log(spawnedObject.transform.localScale);
 
             if (spawnedObject == null)
             {
                 spawnedObject = Instantiate(m_PlacedPrefab, hit.pose.position, hit.pose.rotation);
                 spawnedObject.transform.localScale = (new Vector3(dist, dist, dist))*10;
-                Debug.Log(spawnedObject.transform.localScale);
+                // Debug.Log(spawnedObject.transform.localScale);
             }
             else
             {
                 spawnedObject.transform.position = hit.pose.position;
                 spawnedObject.transform.localScale = (new Vector3(dist, dist, dist))*10;
-                Debug.Log(spawnedObject.transform.localScale);
+                // Debug.Log(spawnedObject.transform.localScale);
             }
         }
     }
@@ -94,6 +94,15 @@ public class ARCircleSpawner : MonoBehaviour
     void Update()
     {
         MarkerSpawn();
+
+        if (Input.touchCount > 0)
+        {
+            Touch touch = Input.GetTouch(0);
+            if (touch.phase == TouchPhase.Began)
+            {
+                Debug.Log(touch.position);
+            }
+        }
     }
 
     static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
