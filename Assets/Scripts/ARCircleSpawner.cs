@@ -93,17 +93,49 @@ public class ARCircleSpawner : MonoBehaviour
 
     void Update()
     {
-        MarkerSpawn();
+        // Debug.Log(string.Format("[SCREEN] ray_x: {0}\n ray_y: {1}\n ray_r: {2}", 
+        // ray_x, ray_y, ray_r));
+
+        Vector2 ray_pos = m_cv.GetPos();
+        // Debug.LogFormat("{0}, {1}", ray_pos, m_cv.GetRad());
+
+        bool arRayBool = m_ARRaycastManager.Raycast(ray_pos, s_Hits, TrackableType.PlaneWithinPolygon);
+        bool edgeRayBool = m_ARRaycastManager.Raycast(ray_pos + (new Vector2(m_cv.GetRad(), 0)), e_Hits, TrackableType.PlaneWithinPolygon);
+        // Debug.Log(arRayBool);
+        if (arRayBool)
+        {
+            var hit = s_Hits[0];
+            face = hit;
+            var edge = e_Hits[0];
+            float dist = Vector3.Distance(hit.pose.position, edge.pose.position);
+            // Debug.Log(dist);
+            // Debug.Log(spawnedObject.transform.localScale);
+
+            if (spawnedObject == null)
+            {
+                spawnedObject = Instantiate(m_PlacedPrefab, hit.pose.position, hit.pose.rotation);
+                spawnedObject.transform.localScale = (new Vector3(dist, dist, dist))*10;
+                // Debug.Log(spawnedObject.transform.localScale);
+            }
+            else
+            {
+                spawnedObject.transform.position = hit.pose.position;
+                spawnedObject.transform.localScale = (new Vector3(dist, dist, dist))*10;
+                // Debug.Log(spawnedObject.transform.localScale);
+            }
+        }
 
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
             if (touch.phase == TouchPhase.Began)
             {
-                // Debug.Log(touch.position);
-                // thrownObject = Instantiate(m_ThrownPrefab, new Vector3(0,0,0), new Quaternion(0,0,0,0));
-                Vector3 face = GameObject.Find("AR Camera").transform.forward;
-                Debug.Log(face);
+                Transform cam_transform = GameObject.Find("AR Camera").transform;
+                Debug.Log(face.pose.position);
+                thrownObject = Instantiate(m_ThrownPrefab, cam_transform.position, face.pose.rotation);
+                // Debug.Log(face);
+                // thrownObject.GetComponent<Rigidbody>().AddForce(cam_transform.forward * 3);
+                // m_SessionOrigin.MakeContentAppearAt(thrownObject.transform, new Vector3(0,0,0));
             }
         }
     }
@@ -113,4 +145,5 @@ public class ARCircleSpawner : MonoBehaviour
 
     ARRaycastManager m_ARRaycastManager;
     ARSessionOrigin m_SessionOrigin;
+    ARRaycastHit face;
 }
