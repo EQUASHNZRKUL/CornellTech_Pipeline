@@ -100,7 +100,10 @@ public class ARCircleSpawner : MonoBehaviour
             Touch touch = Input.GetTouch(0);
             if (touch.phase == TouchPhase.Began)
             {
-                Debug.Log(touch.position);
+                // Debug.Log(touch.position);
+                // thrownObject = Instantiate(m_ThrownPrefab, new Vector3(0,0,0), new Quaternion(0,0,0,0));
+                Vector3 face = GameObject.Find("AR Camera").transform.forward;
+                Debug.Log(face);
             }
         }
     }
