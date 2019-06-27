@@ -28,6 +28,16 @@ public class ARCircleSpawner : MonoBehaviour
     }
 
     public GameObject spawnedObject { get; private set; }
+
+    [SerializeField]
+    GameObject m_ThrownPrefab;
+    public GameObject thrownPrefab
+    {
+        get {return m_ThrownPrefab; }
+        set {m_ThrownPrefab = value; }
+    }
+
+    public GameObject thrownObject { get; private set; }
     
     [SerializeField]
     GameObject m_CvControllerObject;
@@ -43,6 +53,7 @@ public class ARCircleSpawner : MonoBehaviour
     {
         Debug.Log("StartTest");
         m_ARRaycastManager = GetComponent<ARRaycastManager>();
+        m_SessionOrigin = GetComponent<ARSessionOrigin>();
         m_cv = CV_Controller_Object.GetComponent<CV_Controller>();
     }
 
@@ -84,4 +95,5 @@ public class ARCircleSpawner : MonoBehaviour
     static List<ARRaycastHit> e_Hits = new List<ARRaycastHit>();
 
     ARRaycastManager m_ARRaycastManager;
+    ARSessionOrigin m_SessionOrigin;
 }
