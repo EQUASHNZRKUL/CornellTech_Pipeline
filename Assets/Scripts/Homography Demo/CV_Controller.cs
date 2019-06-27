@@ -19,7 +19,7 @@ using OpenCVForUnity.Features2dModule;
 /// If a raycast hits a trackable, the <see cref="placedPrefab"/> is instantiated
 /// and moved to the hit position.
 /// </summary>
-public class Circle_Spawner : MonoBehaviour
+public class CV_Controller : MonoBehaviour
 {
     public Mat imageMat = new Mat(480, 640, CvType.CV_8UC1);
     private Mat inMat = new Mat(480, 640, CvType.CV_8UC1);
@@ -31,14 +31,14 @@ public class Circle_Spawner : MonoBehaviour
     private float blob_y;
     private float blob_r;
 
+    private float ray_x;
+    private float ray_y;
+    private float ray_r;
+
     public double THRESH_VAL = 150.0;
     public int K_ITERATIONS = 10;
     string circparam_path;
     private Mat struct_elt = new Mat (3, 3, CvType.CV_8UC1);
-
-    public Texture2D m_Texture;
-
-    private ScreenOrientation? m_CachedOrientation = null;
 
     [SerializeField]
     ARCameraManager m_ARCameraManager;
@@ -49,14 +49,6 @@ public class Circle_Spawner : MonoBehaviour
     }
 
     [SerializeField]
-    RawImage m_RawImage;
-    public RawImage rawImage 
-    {
-        get { return m_RawImage; }
-        set { m_RawImage = value; }
-    }
-
-    [SerializeField]
     Text m_ImageInfo;
     public Text imageInfo
     {
@@ -64,16 +56,15 @@ public class Circle_Spawner : MonoBehaviour
         set { m_ImageInfo = value; }
     }
 
-    [SerializeField]
-    [Tooltip("Instantiates this prefab on a gameObject at the touch location.")]
-    GameObject m_PlacedPrefab;
-    public GameObject placedPrefab
+    public Vector2 GetPos()
     {
-        get { return m_PlacedPrefab; }
-        set { m_PlacedPrefab = value; }
+        return new Vector2(ray_x, ray_y);
     }
 
-    public GameObject spawnedObject { get; private set; }
+    public float GetRad()
+    {
+        return ray_r;
+    }
 
     void Awake()
     {
@@ -94,7 +85,6 @@ public class Circle_Spawner : MonoBehaviour
         if (m_ARCameraManager != null)
             m_ARCameraManager.frameReceived -= OnCameraFrameReceived;
     }
-
 
     void ComputerVisionAlgo(IntPtr greyscale) 
     {
@@ -132,29 +122,7 @@ public class Circle_Spawner : MonoBehaviour
         Features2d.drawKeypoints(imageMat, keyMat, outMat);
     }
 
-    void ConfigureRawImageInSpace(Vector2 img_dim)
-    {
-        Vector2 ScreenDimension = new Vector2(Screen.width, Screen.height);
-        int scr_w = Screen.width;
-        int scr_h = Screen.height; 
-
-        float img_w = img_dim.x;
-        float img_h = img_dim.y;
-
-        float w_ratio = (float)scr_w/img_w;
-        float h_ratio = (float)scr_h/img_h;
-        float scale = Math.Max(w_ratio, h_ratio);
-
-        Debug.LogFormat("Screen Dimensions: {0} x {1}\n Image Dimensions: {2} x {3}\n Ratios: {4}, {5}", 
-            scr_w, scr_h, img_w, img_h, w_ratio, h_ratio);
-        Debug.LogFormat("RawImage Rect: {0}", m_RawImage.uvRect);
-
-        m_RawImage.SetNativeSize();
-        m_RawImage.transform.position = new Vector3(scr_w/2, scr_h/2, 0.0f);
-        m_RawImage.transform.localScale = new Vector3(scale, scale, 0.0f);
-    }
-
-    void SendRaycastToPoint()
+    void FindRaycastPoint()
     {
         float w_ratio = (float)Screen.width/640;
         float h_ratio = (float)Screen.height/480;
@@ -162,31 +130,19 @@ public class Circle_Spawner : MonoBehaviour
 
         // Debug.Log(scale == w_ratio);
 
-        float ray_x = scale * blob_x;
-        float ray_y = 1080.0f - (3.375f * (blob_y - 80.0f));
-        float ray_r = scale * blob_r;
+        ray_x = scale * blob_x;
+        ray_y = 1080.0f - (3.375f * (blob_y - 80.0f));
+        ray_r = scale * blob_r;
+
+        m_ImageInfo.text = string.Format("{0} x {1}", ray_x, ray_y);
 
         // Debug.Log(string.Format("[SCREEN] ray_x: {0}\n ray_y: {1}\n ray_r: {2}", 
         // ray_x, ray_y, ray_r));
-
-        bool arRayBool = m_ARRaycastManager.Raycast(new Vector2(ray_x, ray_y), s_Hits, TrackableType.PlaneWithinPolygon);
-        if (arRayBool)
-        {
-            var hit = s_Hits[0];
-            if (spawnedObject == null)
-            {
-                spawnedObject = Instantiate(m_PlacedPrefab, hit.pose.position, hit.pose.rotation);
-            }
-            else
-            {
-                spawnedObject.transform.position = hit.pose.position;
-            }
-        }
     }
 
     void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
     {
-        // CAMERA IMAGE HANDLING
+        // Camera data extraction
         XRCameraImage image;
         if (!cameraManager.TryGetLatestImage(out image))
         {
@@ -195,47 +151,18 @@ public class Circle_Spawner : MonoBehaviour
         }
 
         Vector2 img_dim = image.dimensions;
-        
         XRCameraImagePlane greyscale = image.GetPlane(0);
 
-        // Instantiates new m_Texture if necessary
-        if (m_Texture == null || m_Texture.width != image.width)
-        {
-            var format = TextureFormat.RGBA32;
-            m_Texture = new Texture2D(image.width, image.height, format, false);
-        }
-
         image.Dispose();
-
-        // Sets orientation if necessary
-        if (m_CachedOrientation == null || m_CachedOrientation != Screen.orientation)
-        {
-            // TODO: Debug why doesn't initiate with ConfigRawimage(). The null isn't triggering here. Print cached Orientation
-            m_CachedOrientation = Screen.orientation;
-            ConfigureRawImageInSpace(img_dim);
-        }
 
         // Process the image here: 
         unsafe {
             IntPtr greyPtr = (IntPtr) greyscale.data.GetUnsafePtr();
             ComputerVisionAlgo(greyPtr);
-            Utils.matToTexture2D(outMat, m_Texture, true, 0);
         }
-
-        m_RawImage.texture = (Texture) m_Texture;
 
         // Creates 3D object from image processing data
-        SendRaycastToPoint();
-
-        // TESTING: verify if blob_x and blob_y correspond to screen coordinates
-        if (Input.touchCount <= 0)
-            return;
-        Touch touch = Input.GetTouch(0);
-        if (touch.phase == TouchPhase.Began)
-        {
-            // Debug.Log(touch.position);
-            m_ImageInfo.text = string.Format("{0}", touch.position);
-        }
+        FindRaycastPoint();
     }
     static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
 
