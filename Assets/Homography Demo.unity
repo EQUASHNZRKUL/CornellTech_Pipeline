@@ -505,10 +505,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61576ce7284d044138ad495d8c417dbf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  THRESH_VAL: 150
-  K_ITERATIONS: 10
-  m_ARCameraManager: {fileID: 282840816}
-  m_ImageInfo: {fileID: 519562891}
 --- !u!1 &519562889
 GameObject:
   m_ObjectHideFlags: 0
@@ -690,9 +686,9 @@ GameObject:
   - component: {fileID: 1335839535}
   - component: {fileID: 1335839534}
   - component: {fileID: 1335839537}
-  - component: {fileID: 1335839536}
   - component: {fileID: 1335839538}
   - component: {fileID: 1335839539}
+  - component: {fileID: 1335839536}
   m_Layer: 0
   m_Name: AR Session Origin
   m_TagString: Untagged
@@ -737,13 +733,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1335839533}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: effd15f573e8148b183750fa7796ae16, type: 3}
+  m_Script: {fileID: 11500000, guid: 951470d938b1e46e68c55f50d9a34e6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_ARCameraManager: {fileID: 282840816}
-  m_PlacedPrefab: {fileID: 1237402283603786, guid: 2e80f2e009b5347149ebaae6d96ddfb8,
-    type: 3}
-  m_ThrownPrefab: {fileID: 1237402283603786, guid: 8a1dcafa0ec474b84a02352a696ae8cc,
+  m_PlacedPrefab: {fileID: 1934569588295450, guid: b34b6c8f1206a6844b983e23b9da0441,
     type: 3}
   m_CvControllerObject: {fileID: 515354191}
 --- !u!114 &1335839537

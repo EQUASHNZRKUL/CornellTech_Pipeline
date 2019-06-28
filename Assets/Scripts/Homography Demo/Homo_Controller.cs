@@ -19,7 +19,7 @@ using OpenCVForUnity.Features2dModule;
 /// If a raycast hits a trackable, the <see cref="placedPrefab"/> is instantiated
 /// and moved to the hit position.
 /// </summary>
-public class CV_Controller : MonoBehaviour
+public class Homo_Controller : MonoBehaviour
 {
     public Mat imageMat = new Mat(480, 640, CvType.CV_8UC1);
     private Mat inMat = new Mat(480, 640, CvType.CV_8UC1);
