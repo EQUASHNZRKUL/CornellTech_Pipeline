@@ -90,7 +90,6 @@ public class Homo_Controller : MonoBehaviour
     {
         Utils.copyToMat(greyscale, imageMat);
 
-
         // Inverting Image pixel values
         inMat = (Mat.ones(imageMat.rows(), imageMat.cols(), CvType.CV_8UC1) * 255) - imageMat;
 
@@ -103,7 +102,6 @@ public class Homo_Controller : MonoBehaviour
         MatOfKeyPoint keyMat = new MatOfKeyPoint();
         SimpleBlobDetector detector = SimpleBlobDetector.create();
         inMat = imageMat;
-        // detector.read(circparam_path);
 
         // Finding circles
         detector.detect(imageMat, keyMat);
@@ -114,11 +112,6 @@ public class Homo_Controller : MonoBehaviour
             blob_r = (float) keyMat.get(0, 0)[2];
         }
 
-        // Visualizing detected circles
-        // m_ImageInfo.text = 
-        // Debug.Log(string.Format("Circle Count: {0}\n [IMAGE] blob_x: {1}\n blob_y: {2}\n blob_r: {3}", 
-        // keyMat.size().height, blob_x, blob_y, blob_r));
-
         Features2d.drawKeypoints(imageMat, keyMat, outMat);
     }
 
@@ -128,16 +121,11 @@ public class Homo_Controller : MonoBehaviour
         float h_ratio = (float)Screen.height/480;
         float scale = Math.Max(w_ratio, h_ratio);
 
-        // Debug.Log(scale == w_ratio);
-
         ray_x = scale * blob_x;
         ray_y = 1080.0f - (3.375f * (blob_y - 80.0f));
         ray_r = scale * blob_r;
 
         m_ImageInfo.text = string.Format("{0} x {1}", ray_x, ray_y);
-
-        // Debug.Log(string.Format("[SCREEN] ray_x: {0}\n ray_y: {1}\n ray_r: {2}", 
-        // ray_x, ray_y, ray_r));
     }
 
     void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)

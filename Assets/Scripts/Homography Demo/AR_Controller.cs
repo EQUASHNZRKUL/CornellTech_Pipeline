@@ -39,6 +39,13 @@ public class AR_Controller : MonoBehaviour
 
     private CV_Controller m_cv;
 
+    public float[] homo_points = new float[8];
+
+    void GetHomopoints()
+    {
+        return homo_points;
+    }
+
     void Awake()
     {
         Debug.Log("StartTest");
@@ -82,6 +89,16 @@ public class AR_Controller : MonoBehaviour
         }
     }
 
+    void ScreenToCameraX(float x)
+    {
+        return (640.0f/2200.0f) * x;
+    }
+
+    void ScreenToCameraY(float y)
+    {
+        return (320.f/1080.0f)(y - 1080.0f) + 80.0f;
+    }
+
     void RaycastSpawn()
     {
         if (Input.touchCount <= 0)
@@ -94,12 +111,35 @@ public class AR_Controller : MonoBehaviour
             {
                 var hitPose = s_Hits[0].pose;
                 if (spawnedObject == null)
-                {
                     spawnedObject = Instantiate(m_PlacedPrefab, hitPose.position, hitPose.rotation);
-                }
                 else
-                {
                     spawnedObject.transform.position = hitPose.position + (Vector3.up * 0.1f);
+
+                // World Coordinates of corners
+                Vector3 spawn_nw = spawnedObject.transform.TransformPoint(new Vector3(-0.05, 0.05, 0));
+                Vector3 spawn_ne = spawnedObject.transform.TransformPoint(new Vector3(0.05, 0.05, 0));
+                Vector3 spawn_sw = spawnedObject.transform.TransformPoint(new Vector3(-0.05, -0.05, 0));
+                Vector3 spawn_se = spawnedObject.transform.TransformPoint(new Vector3(0.05, -0.05, 0));
+
+                // Screen Coordinates of corners
+                Vector3 cam_nw = cam.WorldToScreenPoint(spawn_nw);
+                Vector3 cam_ne = cam.WorldToScreenPoint(spawn_ne);
+                Vector3 cam_sw = cam.WorldToScreenPoint(spawn_sw);
+                Vector3 cam_se = cam.WorldToScreenPoint(spawn_se);
+
+                // Saving to homo_points
+                homo_points[0] = ScreenToCameraX(cam_nw.x);
+                homo_points[1] = ScreenToCameraY(cam_nw.y);
+                homo_points[2] = ScreenToCameraX(cam_ne.x);
+                homo_points[3] = ScreenToCameraY(cam_ne.y);
+                homo_points[4] = ScreenToCameraX(cam_sw.x);
+                homo_points[5] = ScreenToCameraY(cam_sw.y);
+                homo_points[6] = ScreenToCameraX(cam_se.x);
+                homo_points[7] = ScreenToCameraY(cam_se.y);
+
+                for (int i = 0; i < 8; i++)
+                {
+                    Debug.Log(homo_points[i]);
                 }
             }
         }
