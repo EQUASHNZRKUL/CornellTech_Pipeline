@@ -23,10 +23,18 @@ using OpenCVForUnity.Calib3dModule;
 /// </summary>
 public class Homo_Controller : MonoBehaviour
 {
+    public static double THRESH_VAL = 150.0;
+    public static int K_ITERATIONS = 10;
+    public static double HOMOGRAPHY_WIDTH = 640.0;
+    public static double HOMOGRAPHY_HEIGHT = 480.0;
+
     public Mat imageMat = new Mat(480, 640, CvType.CV_8UC1);
     private Mat inMat = new Mat(480, 640, CvType.CV_8UC1);
     private Mat erodeMat = new Mat(480, 640, CvType.CV_8UC1);
     private Mat dilMat = new Mat(480, 640, CvType.CV_8UC1);
+    // private Mat homoMat = new Mat((int) HOMOGRAPHY_HEIGHT, (int) HOMOGRAPHY_WIDTH, CvType.CV_32FC1);
+    // private Mat homoMat = new Mat(480, 640, CvType.CV_32FC1);
+    private Mat homoMat = new Mat(480, 640, CvType.CV_8UC1);
     public Mat outMat = new Mat(480, 640, CvType.CV_8UC1);
 
     private float blob_x;
@@ -40,10 +48,6 @@ public class Homo_Controller : MonoBehaviour
     private ScreenOrientation? m_CachedOrientation = null;
     private Texture2D m_Texture;
 
-    public double THRESH_VAL = 150.0;
-    public int K_ITERATIONS = 10;
-    public double HOMOGRAPHY_WIDTH = 640.0;
-    public double HOMOGRAPHY_HEIGHT = 480.0;
     string circparam_path;
     private Mat struct_elt = new Mat (3, 3, CvType.CV_8UC1);
 
@@ -126,13 +130,14 @@ public class Homo_Controller : MonoBehaviour
         
         double[] homo_points = m_ARSessionManager.GetComponent<AR_Controller>().GetHomopoints();
 
-        outMat = inMat;
+        // Display Homography Points
+        // outMat = inMat;
+        // Imgproc.circle(outMat, new Point(homo_points[0], homo_points[1]), 5, new Scalar(0.0, 0.0, 255.0));
+        // Imgproc.circle(outMat, new Point(homo_points[2], homo_points[3]), 5, new Scalar(0.0, 0.0, 255.0));
+        // Imgproc.circle(outMat, new Point(homo_points[4], homo_points[5]), 5, new Scalar(0.0, 0.0, 255.0));
+        // Imgproc.circle(outMat, new Point(homo_points[6], homo_points[7]), 5, new Scalar(0.0, 0.0, 255.0));
 
-        Imgproc.circle(outMat, new Point(homo_points[0], homo_points[1]), 5, new Scalar(0.0, 0.0, 255.0));
-        Imgproc.circle(outMat, new Point(homo_points[2], homo_points[3]), 5, new Scalar(0.0, 0.0, 255.0));
-        Imgproc.circle(outMat, new Point(homo_points[4], homo_points[5]), 5, new Scalar(0.0, 0.0, 255.0));
-        Imgproc.circle(outMat, new Point(homo_points[6], homo_points[7]), 5, new Scalar(0.0, 0.0, 255.0));
-
+        // Creating MatOfPoint2f arrays for Homography Points
         Point[] srcPointArray = new Point[4];
         for (int i = 0; i < 4; i++)
         {
@@ -147,7 +152,14 @@ public class Homo_Controller : MonoBehaviour
 
         MatOfPoint2f srcPoints = new MatOfPoint2f(srcPointArray);
         MatOfPoint2f dstPoints = new MatOfPoint2f(dstPointArray);
+
+        // Creating the H Matrix
         Mat Homo_Mat = Calib3d.findHomography(srcPoints, dstPoints);
+
+        Debug.Log(Homo_Mat);
+        Debug.Log(outMat.size());
+
+        Imgproc.warpPerspective(inMat, outMat, Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
     }
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
@@ -223,13 +235,17 @@ public class Homo_Controller : MonoBehaviour
             ComputerVisionAlgo(greyPtr);
 
             // Displays OpenCV Mat as a Texture
-            Utils.matToTexture2D(outMat, m_Texture, true, 0);
+            Utils.matToTexture2D(outMat, m_Texture, false, 0);
         }
 
-        m_RawImage.texture = (Texture) m_Texture;
+        if (Input.touchCount <= 0)
+            return;
+        Touch touch = Input.GetTyouc(0);
+        if (touch.phase == TouchPhase.Began)
+            m_RawImage.texture = (Texture) m_Texture;
 
         // Displays Raycast coordinates 
-        FindRaycastPoint();
+        // FindRaycastPoint();
     }
     static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
 

@@ -506,8 +506,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d61ae60ac3be400f9bfa68dc9ea6c20, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  THRESH_VAL: 150
-  K_ITERATIONS: 10
   m_ARCameraManager: {fileID: 282840816}
   m_RawImage: {fileID: 1669868212}
   m_ImageInfo: {fileID: 519562891}
@@ -756,7 +754,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ARCameraManager: {fileID: 282840816}
-  m_PlacedPrefab: {fileID: 1934569588295450, guid: b34b6c8f1206a6844b983e23b9da0441,
+  m_PlacedPrefab: {fileID: 1934569588295450, guid: dc283c2764eb94d03bb00665a269ef45,
     type: 3}
   m_CvControllerObject: {fileID: 515354191}
   homo_points:
