@@ -121,10 +121,10 @@ public class AR_Controller : MonoBehaviour
                 Camera cam = GameObject.Find("AR Camera").GetComponent<Camera>();
 
                 // World Coordinates of corners
-                Vector3 spawn_nw = spawnedObject.transform.TransformPoint(new Vector3(-DATA_SCALE, DATA_SCALE, 0f));
-                Vector3 spawn_ne = spawnedObject.transform.TransformPoint(new Vector3(DATA_SCALE, DATA_SCALE, 0f));
-                Vector3 spawn_sw = spawnedObject.transform.TransformPoint(new Vector3(-DATA_SCALE, -DATA_SCALE, 0f));
-                Vector3 spawn_se = spawnedObject.transform.TransformPoint(new Vector3(DATA_SCALE, -DATA_SCALE, 0f));
+                Vector3 spawn_nw = spawnedObject.transform.TransformPoint(new Vector3(-0.05f, 0f, 0.05f));
+                Vector3 spawn_ne = spawnedObject.transform.TransformPoint(new Vector3(0.05f, 0f, 0.05f));
+                Vector3 spawn_sw = spawnedObject.transform.TransformPoint(new Vector3(-0.05f, 0f, -0.05f));
+                Vector3 spawn_se = spawnedObject.transform.TransformPoint(new Vector3(0.05f, 0f, -0.05f));
 
                 // Screen Coordinates of corners
                 Vector3 cam_nw = cam.WorldToScreenPoint(spawn_nw);
