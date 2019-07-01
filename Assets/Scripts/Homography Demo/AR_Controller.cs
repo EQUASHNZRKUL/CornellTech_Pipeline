@@ -39,9 +39,9 @@ public class AR_Controller : MonoBehaviour
 
     private CV_Controller m_cv;
 
-    public float[] homo_points = new float[8];
+    public double[] homo_points = new double[8];
 
-    void GetHomopoints()
+    public double[] GetHomopoints()
     {
         return homo_points;
     }
@@ -89,14 +89,14 @@ public class AR_Controller : MonoBehaviour
         }
     }
 
-    void ScreenToCameraX(float x)
+    double ScreenToCameraX(double x)
     {
-        return (640.0f/2200.0f) * x;
+        return (640.0/2200.0) * x;
     }
 
-    void ScreenToCameraY(float y)
+    double ScreenToCameraY(double y)
     {
-        return (320.f/1080.0f)(y - 1080.0f) + 80.0f;
+        return (320.0/1080.0)*(1080.0 - y) + 80.0;
     }
 
     void RaycastSpawn()
@@ -113,13 +113,15 @@ public class AR_Controller : MonoBehaviour
                 if (spawnedObject == null)
                     spawnedObject = Instantiate(m_PlacedPrefab, hitPose.position, hitPose.rotation);
                 else
-                    spawnedObject.transform.position = hitPose.position + (Vector3.up * 0.1f);
+                    spawnedObject.transform.position = hitPose.position;
+
+                Camera cam = GameObject.Find("AR Camera").GetComponent<Camera>();
 
                 // World Coordinates of corners
-                Vector3 spawn_nw = spawnedObject.transform.TransformPoint(new Vector3(-0.05, 0.05, 0));
-                Vector3 spawn_ne = spawnedObject.transform.TransformPoint(new Vector3(0.05, 0.05, 0));
-                Vector3 spawn_sw = spawnedObject.transform.TransformPoint(new Vector3(-0.05, -0.05, 0));
-                Vector3 spawn_se = spawnedObject.transform.TransformPoint(new Vector3(0.05, -0.05, 0));
+                Vector3 spawn_nw = spawnedObject.transform.TransformPoint(new Vector3(-0.05f, 0.05f, 0f));
+                Vector3 spawn_ne = spawnedObject.transform.TransformPoint(new Vector3(0.05f, 0.05f, 0f));
+                Vector3 spawn_sw = spawnedObject.transform.TransformPoint(new Vector3(-0.05f, -0.05f, 0f));
+                Vector3 spawn_se = spawnedObject.transform.TransformPoint(new Vector3(0.05f, -0.05f, 0f));
 
                 // Screen Coordinates of corners
                 Vector3 cam_nw = cam.WorldToScreenPoint(spawn_nw);
@@ -137,9 +139,14 @@ public class AR_Controller : MonoBehaviour
                 homo_points[6] = ScreenToCameraX(cam_se.x);
                 homo_points[7] = ScreenToCameraY(cam_se.y);
 
-                for (int i = 0; i < 8; i++)
+                Debug.LogFormat("Screen Point #0: {0}, {1}", cam_nw.x, cam_nw.y);
+                Debug.LogFormat("Screen Point #1: {0}, {1}", cam_ne.x, cam_ne.y);
+                Debug.LogFormat("Screen Point #2: {0}, {1}", cam_sw.x, cam_sw.y);
+                Debug.LogFormat("Screen Point #3: {0}, {1}", cam_se.x, cam_se.y);
+
+                for (int i = 0; i < 4; i++)
                 {
-                    Debug.Log(homo_points[i]);
+                    Debug.LogFormat("Homography Point #{0}: {1} x {2}", i, homo_points[2*i], homo_points[(2*i)+1]);
                 }
             }
         }

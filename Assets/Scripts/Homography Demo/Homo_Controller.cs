@@ -35,6 +35,9 @@ public class Homo_Controller : MonoBehaviour
     private float ray_y;
     private float ray_r;
 
+    private ScreenOrientation? m_CachedOrientation = null;
+    private Texture2D m_Texture;
+
     public double THRESH_VAL = 150.0;
     public int K_ITERATIONS = 10;
     string circparam_path;
@@ -49,11 +52,27 @@ public class Homo_Controller : MonoBehaviour
     }
 
     [SerializeField]
+    RawImage m_RawImage;
+    public RawImage rawImage 
+    {
+        get { return m_RawImage; }
+        set { m_RawImage = value; }
+    }
+
+    [SerializeField]
     Text m_ImageInfo;
     public Text imageInfo
     {
         get { return m_ImageInfo; }
         set { m_ImageInfo = value; }
+    }
+
+    [SerializeField]
+    ARSessionOrigin m_ARSessionManager;
+    public ARSessionOrigin sessionManager
+    {
+        get { return m_ARSessionManager; }
+        set { m_ARSessionManager = value; }
     }
 
     public Vector2 GetPos()
@@ -77,7 +96,9 @@ public class Homo_Controller : MonoBehaviour
     void OnEnable()
     {
         if (m_ARCameraManager != null)
+        {
             m_ARCameraManager.frameReceived += OnCameraFrameReceived;
+        }
     }
 
     void OnDisable()
@@ -91,28 +112,46 @@ public class Homo_Controller : MonoBehaviour
         Utils.copyToMat(greyscale, imageMat);
 
         // Inverting Image pixel values
+        MatOfKeyPoint keyMat = new MatOfKeyPoint();
         inMat = (Mat.ones(imageMat.rows(), imageMat.cols(), CvType.CV_8UC1) * 255) - imageMat;
 
         // Creating Detector (Yellow Circle)
         // MatOfKeyPoint keyMat = new MatOfKeyPoint();
         // SimpleBlobDetector detector = SimpleBlobDetector.create();
 
+        double[] homo_points = m_ARSessionManager.GetComponent<AR_Controller>().GetHomopoints();
 
-        // Creating Detector (Red Circle)
-        MatOfKeyPoint keyMat = new MatOfKeyPoint();
-        SimpleBlobDetector detector = SimpleBlobDetector.create();
-        inMat = imageMat;
+        double[] nw = new double[2];
+        nw[0] = homo_points[0]; nw[1] = homo_points[1]; nw[2] = 25.0f;
+        outMat = inMat;
+        Imgproc.circle(outMat, new Point(nw[0], nw[1]), (int) nw[2], new Scalar(0.0, 0.0, 255.0));
+        Imgproc.circle(outMat, new Point(homo_points[2], homo_points[3]), 25, new Scalar(0.0, 0.0, 255.0));
+        Imgproc.circle(outMat, new Point(homo_points[4], homo_points[5]), 25, new Scalar(0.0, 0.0, 255.0));
+        Imgproc.circle(outMat, new Point(homo_points[6], homo_points[7]), 25, new Scalar(0.0, 0.0, 255.0));
 
-        // Finding circles
-        detector.detect(imageMat, keyMat);
-        if (keyMat.size().height > 0)
-        {
-            blob_x = (float) keyMat.get(0, 0)[0];
-            blob_y = (float) keyMat.get(0, 0)[1];
-            blob_r = (float) keyMat.get(0, 0)[2];
-        }
+        // Features2d.drawKeypoints(imageMat, keyMat, outMat);
+    }
 
-        Features2d.drawKeypoints(imageMat, keyMat, outMat);
+    void ConfigureRawImageInSpace(Vector2 img_dim)
+    {
+        Vector2 ScreenDimension = new Vector2(Screen.width, Screen.height);
+        int scr_w = Screen.width;
+        int scr_h = Screen.height; 
+
+        float img_w = img_dim.x;
+        float img_h = img_dim.y;
+
+        float w_ratio = (float)scr_w/img_w;
+        float h_ratio = (float)scr_h/img_h;
+        float scale = Math.Max(w_ratio, h_ratio);
+
+        Debug.LogFormat("Screen Dimensions: {0} x {1}\n Image Dimensions: {2} x {3}\n Ratios: {4}, {5}", 
+            scr_w, scr_h, img_w, img_h, w_ratio, h_ratio);
+        Debug.LogFormat("RawImage Rect: {0}", m_RawImage.uvRect);
+
+        m_RawImage.SetNativeSize();
+        m_RawImage.transform.position = new Vector3(scr_w/2, scr_h/2, 0.0f);
+        m_RawImage.transform.localScale = new Vector3(scale, scale, 0.0f);
     }
 
     void FindRaycastPoint()
@@ -141,13 +180,30 @@ public class Homo_Controller : MonoBehaviour
         Vector2 img_dim = image.dimensions;
         XRCameraImagePlane greyscale = image.GetPlane(0);
 
+        // Instantiates new m_Texture if necessary
+        if (m_Texture == null || m_Texture.width != image.width)
+        {
+            var format = TextureFormat.RGBA32;
+            m_Texture = new Texture2D(image.width, image.height, format, false);
+        }
+
         image.Dispose();
+
+        // Sets orientation if necessary
+        if (m_CachedOrientation == null || m_CachedOrientation != Screen.orientation)
+        {
+            // TODO: Debug why doesn't initiate with ConfigRawimage(). The null isn't triggering here. Print cached Orientation
+            m_CachedOrientation = Screen.orientation;
+            ConfigureRawImageInSpace(img_dim);
+        }
 
         // Process the image here: 
         unsafe {
             IntPtr greyPtr = (IntPtr) greyscale.data.GetUnsafePtr();
             ComputerVisionAlgo(greyPtr);
         }
+
+        m_RawImage.texture = (Texture) m_Texture;
 
         // Creates 3D object from image processing data
         FindRaycastPoint();
