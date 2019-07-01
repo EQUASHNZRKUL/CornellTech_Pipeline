@@ -756,7 +756,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ARCameraManager: {fileID: 282840816}
-  m_PlacedPrefab: {fileID: 1934569588295450, guid: dc283c2764eb94d03bb00665a269ef45,
+  m_PlacedPrefab: {fileID: 1934569588295450, guid: b34b6c8f1206a6844b983e23b9da0441,
     type: 3}
   m_CvControllerObject: {fileID: 515354191}
   homo_points:

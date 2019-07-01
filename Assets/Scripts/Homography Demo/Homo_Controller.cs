@@ -6,11 +6,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
+
 using OpenCVForUnity;
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.UnityUtils;
 using OpenCVForUnity.ImgprocModule;
 using OpenCVForUnity.Features2dModule;
+using OpenCVForUnity.Calib3dModule;
 
 /// <summary>
 /// Listens for touch events and performs an AR raycast from the screen touch point.
@@ -40,6 +42,8 @@ public class Homo_Controller : MonoBehaviour
 
     public double THRESH_VAL = 150.0;
     public int K_ITERATIONS = 10;
+    public double HOMOGRAPHY_WIDTH = 640.0;
+    public double HOMOGRAPHY_HEIGHT = 480.0;
     string circparam_path;
     private Mat struct_elt = new Mat (3, 3, CvType.CV_8UC1);
 
@@ -113,23 +117,37 @@ public class Homo_Controller : MonoBehaviour
 
         // Inverting Image pixel values
         MatOfKeyPoint keyMat = new MatOfKeyPoint();
-        inMat = (Mat.ones(imageMat.rows(), imageMat.cols(), CvType.CV_8UC1) * 255) - imageMat;
+        inMat = imageMat;
+        // inMat = (Mat.ones(imageMat.rows(), imageMat.cols(), CvType.CV_8UC1) * 255) - imageMat;
 
         // Creating Detector (Yellow Circle)
         // MatOfKeyPoint keyMat = new MatOfKeyPoint();
         // SimpleBlobDetector detector = SimpleBlobDetector.create();
-
+        
         double[] homo_points = m_ARSessionManager.GetComponent<AR_Controller>().GetHomopoints();
 
-        double[] nw = new double[2];
-        nw[0] = homo_points[0]; nw[1] = homo_points[1]; nw[2] = 25.0f;
         outMat = inMat;
-        Imgproc.circle(outMat, new Point(nw[0], nw[1]), (int) nw[2], new Scalar(0.0, 0.0, 255.0));
-        Imgproc.circle(outMat, new Point(homo_points[2], homo_points[3]), 25, new Scalar(0.0, 0.0, 255.0));
-        Imgproc.circle(outMat, new Point(homo_points[4], homo_points[5]), 25, new Scalar(0.0, 0.0, 255.0));
-        Imgproc.circle(outMat, new Point(homo_points[6], homo_points[7]), 25, new Scalar(0.0, 0.0, 255.0));
 
-        // Features2d.drawKeypoints(imageMat, keyMat, outMat);
+        Imgproc.circle(outMat, new Point(homo_points[0], homo_points[1]), 5, new Scalar(0.0, 0.0, 255.0));
+        Imgproc.circle(outMat, new Point(homo_points[2], homo_points[3]), 5, new Scalar(0.0, 0.0, 255.0));
+        Imgproc.circle(outMat, new Point(homo_points[4], homo_points[5]), 5, new Scalar(0.0, 0.0, 255.0));
+        Imgproc.circle(outMat, new Point(homo_points[6], homo_points[7]), 5, new Scalar(0.0, 0.0, 255.0));
+
+        Point[] srcPointArray = new Point[4];
+        for (int i = 0; i < 4; i++)
+        {
+            srcPointArray[i] = new Point(homo_points[2*i], homo_points[(2*i)+1]);
+        }
+
+        Point[] dstPointArray = new Point[4];
+        dstPointArray[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
+        dstPointArray[1] = new Point(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT);
+        dstPointArray[2] = new Point(0.0, 0.0);
+        dstPointArray[3] = new Point(HOMOGRAPHY_WIDTH, 0.0);
+
+        MatOfPoint2f srcPoints = new MatOfPoint2f(srcPointArray);
+        MatOfPoint2f dstPoints = new MatOfPoint2f(dstPointArray);
+        Mat Homo_Mat = Calib3d.findHomography(srcPoints, dstPoints);
     }
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
@@ -150,8 +168,10 @@ public class Homo_Controller : MonoBehaviour
         Debug.LogFormat("RawImage Rect: {0}", m_RawImage.uvRect);
 
         m_RawImage.SetNativeSize();
-        m_RawImage.transform.position = new Vector3(scr_w/2, scr_h/2, 0.0f);
-        m_RawImage.transform.localScale = new Vector3(scale, scale, 0.0f);
+        m_RawImage.transform.position = new Vector3(scr_w/4, scr_h/4, 0.0f);
+        m_RawImage.transform.localScale = new Vector3(scale/4, scale/4, 0.0f);
+        // m_RawImage.transform.position = new Vector3(scr_w/2, scr_h/2, 0.0f);
+        // m_RawImage.transform.localScale = new Vector3(scale, scale, 0.0f);
     }
 
     void FindRaycastPoint()
@@ -189,7 +209,7 @@ public class Homo_Controller : MonoBehaviour
 
         image.Dispose();
 
-        // Sets orientation if necessary
+        // Sets orientation of screen if necessary
         if (m_CachedOrientation == null || m_CachedOrientation != Screen.orientation)
         {
             // TODO: Debug why doesn't initiate with ConfigRawimage(). The null isn't triggering here. Print cached Orientation
@@ -201,11 +221,14 @@ public class Homo_Controller : MonoBehaviour
         unsafe {
             IntPtr greyPtr = (IntPtr) greyscale.data.GetUnsafePtr();
             ComputerVisionAlgo(greyPtr);
+
+            // Displays OpenCV Mat as a Texture
+            Utils.matToTexture2D(outMat, m_Texture, true, 0);
         }
 
         m_RawImage.texture = (Texture) m_Texture;
 
-        // Creates 3D object from image processing data
+        // Displays Raycast coordinates 
         FindRaycastPoint();
     }
     static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
