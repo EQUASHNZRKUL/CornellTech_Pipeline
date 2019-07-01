@@ -238,11 +238,7 @@ public class Homo_Controller : MonoBehaviour
             Utils.matToTexture2D(outMat, m_Texture, false, 0);
         }
 
-        if (Input.touchCount <= 0)
-            return;
-        Touch touch = Input.GetTyouc(0);
-        if (touch.phase == TouchPhase.Began)
-            m_RawImage.texture = (Texture) m_Texture;
+        m_RawImage.texture = (Texture) m_Texture;
 
         // Displays Raycast coordinates 
         // FindRaycastPoint();
