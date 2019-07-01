@@ -38,10 +38,14 @@ public class AR_Controller : MonoBehaviour
     } 
 
     private CV_Controller m_cv;
-
     public double[] homo_points = new double[8];
-
     public static float DATA_SCALE = 0.05f;
+    private TrackableId cached_trackableid;
+
+    private Vector3 spawn_nw;
+    private Vector3 spawn_ne;
+    private Vector3 spawn_sw;
+    private Vector3 spawn_se;
 
     public double[] GetHomopoints()
     {
@@ -103,55 +107,57 @@ public class AR_Controller : MonoBehaviour
 
     void RaycastSpawn()
     {
-        if (Input.touchCount <= 0)
-            return;
-        Touch touch = Input.GetTouch(0);
-        if (touch.phase == TouchPhase.Began)
+        if (Input.touchCount > 0)
         {
-            bool arRayBool = m_ARRaycastManager.Raycast(touch.position, s_Hits, TrackableType.PlaneWithinPolygon);
-            if (arRayBool)
+            Touch touch = Input.GetTouch(0);
+            if (touch.phase == TouchPhase.Began)
             {
-                var hitPose = s_Hits[0].pose;
-                if (spawnedObject == null)
-                    spawnedObject = Instantiate(m_PlacedPrefab, hitPose.position, hitPose.rotation);
-                else
-                    spawnedObject.transform.position = hitPose.position;
-                    spawnedObject.transform.rotation = hitPose.rotation;
-
-                Camera cam = GameObject.Find("AR Camera").GetComponent<Camera>();
-
-                // World Coordinates of corners
-                Vector3 spawn_nw = spawnedObject.transform.TransformPoint(new Vector3(-0.05f, 0f, 0.05f));
-                Vector3 spawn_ne = spawnedObject.transform.TransformPoint(new Vector3(0.05f, 0f, 0.05f));
-                Vector3 spawn_sw = spawnedObject.transform.TransformPoint(new Vector3(-0.05f, 0f, -0.05f));
-                Vector3 spawn_se = spawnedObject.transform.TransformPoint(new Vector3(0.05f, 0f, -0.05f));
-
-                // Screen Coordinates of corners
-                Vector3 cam_nw = cam.WorldToScreenPoint(spawn_nw);
-                Vector3 cam_ne = cam.WorldToScreenPoint(spawn_ne);
-                Vector3 cam_sw = cam.WorldToScreenPoint(spawn_sw);
-                Vector3 cam_se = cam.WorldToScreenPoint(spawn_se);
-
-                // Saving to homo_points
-                homo_points[0] = ScreenToCameraX(cam_nw.x);
-                homo_points[1] = ScreenToCameraY(cam_nw.y);
-                homo_points[2] = ScreenToCameraX(cam_ne.x);
-                homo_points[3] = ScreenToCameraY(cam_ne.y);
-                homo_points[4] = ScreenToCameraX(cam_sw.x);
-                homo_points[5] = ScreenToCameraY(cam_sw.y);
-                homo_points[6] = ScreenToCameraX(cam_se.x);
-                homo_points[7] = ScreenToCameraY(cam_se.y);
-
-                Debug.LogFormat("Screen Point #0: {0}, {1}", cam_nw.x, cam_nw.y);
-                Debug.LogFormat("Screen Point #1: {0}, {1}", cam_ne.x, cam_ne.y);
-                Debug.LogFormat("Screen Point #2: {0}, {1}", cam_sw.x, cam_sw.y);
-                Debug.LogFormat("Screen Point #3: {0}, {1}", cam_se.x, cam_se.y);
-
-                for (int i = 0; i < 4; i++)
+                bool arRayBool = m_ARRaycastManager.Raycast(touch.position, s_Hits, TrackableType.PlaneWithinPolygon);
+                if (arRayBool)
                 {
-                    Debug.LogFormat("Homography Point #{0}: {1} x {2}", i, homo_points[2*i], homo_points[(2*i)+1]);
+                    var hitPose = s_Hits[0].pose;
+                    if (spawnedObject == null)
+                        spawnedObject = Instantiate(m_PlacedPrefab, hitPose.position, hitPose.rotation);
+                    else
+                        spawnedObject.transform.position = hitPose.position;
+                        // if (s_Hits[0].trackableId != cached_trackableid)
+                        //     spawnedObject.transform.rotation = hitPose.rotation;
+
+                    // World Coordinates of corners
+                    spawn_nw = spawnedObject.transform.TransformPoint(new Vector3(-DATA_SCALE, 0f, DATA_SCALE));
+                    spawn_ne = spawnedObject.transform.TransformPoint(new Vector3(DATA_SCALE, 0f, DATA_SCALE));
+                    spawn_sw = spawnedObject.transform.TransformPoint(new Vector3(-DATA_SCALE, 0f, -DATA_SCALE));
+                    spawn_se = spawnedObject.transform.TransformPoint(new Vector3(DATA_SCALE, 0f, -DATA_SCALE));
                 }
             }
+        }
+
+        Camera cam = GameObject.Find("AR Camera").GetComponent<Camera>();
+
+        // Screen Coordinates of corners
+        Vector3 cam_nw = cam.WorldToScreenPoint(spawn_nw);
+        Vector3 cam_ne = cam.WorldToScreenPoint(spawn_ne);
+        Vector3 cam_sw = cam.WorldToScreenPoint(spawn_sw);
+        Vector3 cam_se = cam.WorldToScreenPoint(spawn_se);
+
+        // Saving to homo_points
+        homo_points[0] = ScreenToCameraX(cam_nw.x);
+        homo_points[1] = ScreenToCameraY(cam_nw.y);
+        homo_points[2] = ScreenToCameraX(cam_ne.x);
+        homo_points[3] = ScreenToCameraY(cam_ne.y);
+        homo_points[4] = ScreenToCameraX(cam_sw.x);
+        homo_points[5] = ScreenToCameraY(cam_sw.y);
+        homo_points[6] = ScreenToCameraX(cam_se.x);
+        homo_points[7] = ScreenToCameraY(cam_se.y);
+
+        Debug.LogFormat("Screen Point #0: {0}, {1}", cam_nw.x, cam_nw.y);
+        Debug.LogFormat("Screen Point #1: {0}, {1}", cam_ne.x, cam_ne.y);
+        Debug.LogFormat("Screen Point #2: {0}, {1}", cam_sw.x, cam_sw.y);
+        Debug.LogFormat("Screen Point #3: {0}, {1}", cam_se.x, cam_se.y);
+
+        for (int i = 0; i < 4; i++)
+        {
+            Debug.LogFormat("Homography Point #{0}: {1} x {2}", i, homo_points[2*i], homo_points[(2*i)+1]);
         }
     }
 

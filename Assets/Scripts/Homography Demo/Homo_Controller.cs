@@ -235,7 +235,7 @@ public class Homo_Controller : MonoBehaviour
             ComputerVisionAlgo(greyPtr);
 
             // Displays OpenCV Mat as a Texture
-            Utils.matToTexture2D(outMat, m_Texture, false, 0);
+            Utils.matToTexture2D(outMat, m_Texture, true, 0);
         }
 
         m_RawImage.texture = (Texture) m_Texture;
