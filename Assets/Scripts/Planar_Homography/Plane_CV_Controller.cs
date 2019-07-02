@@ -29,8 +29,7 @@ public class Plane_CV_Controller : MonoBehaviour
     public static double HOMOGRAPHY_HEIGHT = 480.0;
 
     public Mat imageMat = new Mat(480, 640, CvType.CV_8UC1);
-    private Mat inMat = new Mat(480, 640, CvType.CV_8UC1);
-    private Mat homoMat = new Mat(480, 640, CvType.CV_8UC1);
+    private Mat inMat = new Mat(480, 640, CvType.CV_8UC1); 
     public Mat outMat = new Mat(480, 640, CvType.CV_8UC1);
 
     private Mat cached_initMat = new Mat (480, 640, CvType.CV_8UC1);
@@ -78,16 +77,6 @@ public class Plane_CV_Controller : MonoBehaviour
         set { m_ARSessionManager = value; }
     }
 
-    public Vector2 GetPos()
-    {
-        return new Vector2(ray_x, ray_y);
-    }
-
-    public float GetRad()
-    {
-        return ray_r;
-    }
-
     void Awake()
     {
         Debug.Log("StartTest");
@@ -112,48 +101,16 @@ public class Plane_CV_Controller : MonoBehaviour
     void ComputerVisionAlgo(IntPtr greyscale) 
     {
         Utils.copyToMat(greyscale, imageMat);
+        Plane_AR_Controller Homo_Controller = m_ARSessionManager.GetComponent<Plane_AR_Controller>();
+        Point[] c1_scrpoints = Homo_Controller.GetScreenpoints(true);
+        Point[] c2_scrpoints = Homo_Controller.GetScreenpoints(false);
 
-        // Inverting Image pixel values
-        MatOfKeyPoint keyMat = new MatOfKeyPoint();
-        inMat = imageMat;
-        // inMat = (Mat.ones(imageMat.rows(), imageMat.cols(), CvType.CV_8UC1) * 255) - imageMat;
+        MatOfPoint2f initPoints = new MatOfPoint2f(c1_scrpoints);
+        MatOfPoint2f currPoints = new MatOfPoint2f(c2_scrpoints);
 
-        // Creating Detector (Yellow Circle)
-        // MatOfKeyPoint keyMat = new MatOfKeyPoint();
-        // SimpleBlobDetector detector = SimpleBlobDetector.create();
-        
-        double[] homo_points = m_ARSessionManager.GetComponent<AR_Controller>().GetHomopoints();
+        Mat H = Calib3d.findHomography(initPoints, currPoints);
 
-        // Display Homography Points
-        // outMat = inMat;
-        // Imgproc.circle(outMat, new Point(homo_points[0], homo_points[1]), 5, new Scalar(0.0, 0.0, 255.0));
-        // Imgproc.circle(outMat, new Point(homo_points[2], homo_points[3]), 5, new Scalar(0.0, 0.0, 255.0));
-        // Imgproc.circle(outMat, new Point(homo_points[4], homo_points[5]), 5, new Scalar(0.0, 0.0, 255.0));
-        // Imgproc.circle(outMat, new Point(homo_points[6], homo_points[7]), 5, new Scalar(0.0, 0.0, 255.0));
-
-        // Creating MatOfPoint2f arrays for Homography Points
-        Point[] srcPointArray = new Point[4];
-        for (int i = 0; i < 4; i++)
-        {
-            srcPointArray[i] = new Point(homo_points[2*i], homo_points[(2*i)+1]);
-        }
-
-        Point[] dstPointArray = new Point[4];
-        dstPointArray[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
-        dstPointArray[1] = new Point(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT);
-        dstPointArray[2] = new Point(0.0, 0.0);
-        dstPointArray[3] = new Point(HOMOGRAPHY_WIDTH, 0.0);
-
-        MatOfPoint2f srcPoints = new MatOfPoint2f(srcPointArray);
-        MatOfPoint2f dstPoints = new MatOfPoint2f(dstPointArray);
-
-        // Creating the H Matrix
-        Mat Homo_Mat = Calib3d.findHomography(srcPoints, dstPoints);
-
-        Debug.Log(Homo_Mat);
-        Debug.Log(outMat.size());
-
-        Imgproc.warpPerspective(inMat, outMat, Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
+        Imgproc.warpPerspective(inMat, outMat, H, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
     }
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
@@ -174,23 +131,10 @@ public class Plane_CV_Controller : MonoBehaviour
         Debug.LogFormat("RawImage Rect: {0}", m_RawImage.uvRect);
 
         m_RawImage.SetNativeSize();
-        m_RawImage.transform.position = new Vector3(scr_w/4, scr_h/4, 0.0f);
-        m_RawImage.transform.localScale = new Vector3(scale/4, scale/4, 0.0f);
-        // m_RawImage.transform.position = new Vector3(scr_w/2, scr_h/2, 0.0f);
-        // m_RawImage.transform.localScale = new Vector3(scale, scale, 0.0f);
-    }
-
-    void FindRaycastPoint()
-    {
-        float w_ratio = (float)Screen.width/640;
-        float h_ratio = (float)Screen.height/480;
-        float scale = Math.Max(w_ratio, h_ratio);
-
-        ray_x = scale * blob_x;
-        ray_y = 1080.0f - (3.375f * (blob_y - 80.0f));
-        ray_r = scale * blob_r;
-
-        m_ImageInfo.text = string.Format("{0} x {1}", ray_x, ray_y);
+        // m_RawImage.transform.position = new Vector3(scr_w/4, scr_h/4, 0.0f);
+        // m_RawImage.transform.localScale = new Vector3(scale/4, scale/4, 0.0f);
+        m_RawImage.transform.position = new Vector3(scr_w/2, scr_h/2, 0.0f);
+        m_RawImage.transform.localScale = new Vector3(scale, scale, 0.0f);
     }
 
     void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
@@ -246,7 +190,7 @@ public class Plane_CV_Controller : MonoBehaviour
 
         m_RawImage.texture = (Texture) m_Texture;
     }
-    
+
     static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
 
     ARRaycastManager m_ARRaycastManager;

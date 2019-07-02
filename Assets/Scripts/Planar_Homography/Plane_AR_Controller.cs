@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
+using OpenCVForUnity.CoreModule;
 
 [RequireComponent(typeof(ARRaycastManager))]
 public class Plane_AR_Controller : MonoBehaviour
@@ -46,10 +47,10 @@ public class Plane_AR_Controller : MonoBehaviour
     private Vector3 world_sw;
     private Vector3 world_se;
 
-    private Vector2[] c1_scr_points = new Vector2[4];
-    private Vector2[] c2_scr_points = new Vector2[4];
+    private Point[] c1_scr_points = new Point[4];
+    private Point[] c2_scr_points = new Point[4];
 
-    public Vector2[] GetScreenpoints(bool c1)
+    public Point[] GetScreenpoints(bool c1)
     {
         if (c1)
             return c1_scr_points;
@@ -109,11 +110,11 @@ public class Plane_AR_Controller : MonoBehaviour
         return (float) ((320.0/1080.0)*(1080.0 - y) + 80.0);
     }
 
-    void RaycastSpawn()
+    void RaycastSpawn(Vector2 touchpos)
     {
         // Spawns the Square to extract the screen coordinates in question. 
 
-        bool arRayBool = m_ARRaycastManager.Raycast(touch.position, s_Hits, TrackableType.PlaneWithinPolygon);
+        bool arRayBool = m_ARRaycastManager.Raycast(touchpos, s_Hits, TrackableType.PlaneWithinPolygon);
         if (arRayBool)
         {
             var hitPose = s_Hits[0].pose;
@@ -142,16 +143,16 @@ public class Plane_AR_Controller : MonoBehaviour
         Vector3 cam_sw = cam.WorldToScreenPoint(world_sw);
         Vector3 cam_se = cam.WorldToScreenPoint(world_se);
 
-        Vector2[] scr_array = c1_scr_points;
+        Point[] scr_array = c1_scr_points;
         if (!c1)
         {
             scr_array = c2_scr_points;
         }
 
-        scr_array[0] = new Vector2(ScreenToCameraX(cam_nw.x), ScreenToCameraY(cam_nw.y));
-        scr_array[1] = new Vector2(ScreenToCameraX(cam_ne.x), ScreenToCameraY(cam_ne.y));
-        scr_array[2] = new Vector2(ScreenToCameraX(cam_sw.x), ScreenToCameraY(cam_sw.y));
-        scr_array[3] = new Vector2(ScreenToCameraX(cam_se.x), ScreenToCameraY(cam_se.y));
+        scr_array[0] = new Point(ScreenToCameraX(cam_nw.x), ScreenToCameraY(cam_nw.y));
+        scr_array[1] = new Point(ScreenToCameraX(cam_ne.x), ScreenToCameraY(cam_ne.y));
+        scr_array[2] = new Point(ScreenToCameraX(cam_sw.x), ScreenToCameraY(cam_sw.y));
+        scr_array[3] = new Point(ScreenToCameraX(cam_se.x), ScreenToCameraY(cam_se.y));
 
         Debug.LogFormat("Screen Point #0: {0}, {1}", cam_nw.x, cam_nw.y);
         Debug.LogFormat("Screen Point #1: {0}, {1}", cam_ne.x, cam_ne.y);
@@ -173,7 +174,7 @@ public class Plane_AR_Controller : MonoBehaviour
             if (touch.phase == TouchPhase.Began)
             {
                 // Cache worldpoints 
-                RaycastSpawn();
+                RaycastSpawn(touch.position);
                 SetScreenPoints(true);
             }
         }
