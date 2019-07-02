@@ -133,10 +133,10 @@ public class Plane_CV_Controller : MonoBehaviour
         Debug.LogFormat("RawImage Rect: {0}", m_RawImage.uvRect);
 
         m_RawImage.SetNativeSize();
-        // m_RawImage.transform.position = new Vector3(scr_w/4, scr_h/4, 0.0f);
-        // m_RawImage.transform.localScale = new Vector3(scale/4, scale/4, 0.0f);
-        m_RawImage.transform.position = new Vector3(scr_w/2, scr_h/2, 0.0f);
-        m_RawImage.transform.localScale = new Vector3(scale, scale, 0.0f);
+        m_RawImage.transform.position = new Vector3(scr_w/4, scr_h/4, 0.0f);
+        m_RawImage.transform.localScale = new Vector3(scale/4, scale/4, 0.0f);
+        // m_RawImage.transform.position = new Vector3(scr_w/2, scr_h/2, 0.0f);
+        // m_RawImage.transform.localScale = new Vector3(scale, scale, 0.0f);
     }
 
     void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
