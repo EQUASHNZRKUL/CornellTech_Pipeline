@@ -100,7 +100,9 @@ public class Plane_CV_Controller : MonoBehaviour
 
     void ComputerVisionAlgo(IntPtr greyscale) 
     {
-        Utils.copyToMat(greyscale, imageMat);
+        // Utils.copyToMat(greyscale, imageMat);
+        inMat = cached_initMat;
+
         Plane_AR_Controller Homo_Controller = m_ARSessionManager.GetComponent<Plane_AR_Controller>();
         Point[] c1_scrpoints = Homo_Controller.GetScreenpoints(true);
         Point[] c2_scrpoints = Homo_Controller.GetScreenpoints(false);
@@ -169,9 +171,11 @@ public class Plane_CV_Controller : MonoBehaviour
 
         // Process the image here: 
         unsafe {
+            // Debug.Log("CV:172");
             IntPtr greyPtr = (IntPtr) greyscale.data.GetUnsafePtr();
 
             // TOUCH: Cache image on touch
+            // Debug.Log("CV:176");
             if (Input.touchCount > 0)
             {
                 Touch touch = Input.GetTouch(0);
@@ -182,10 +186,12 @@ public class Plane_CV_Controller : MonoBehaviour
                 }
             }
 
+            // Debug.Log("CV:187");
             ComputerVisionAlgo(greyPtr);
 
             // Displays OpenCV Mat as a Texture
-            Utils.matToTexture2D(outMat, m_Texture, false, 0);
+            // Debug.Log("CV:191");
+            Utils.matToTexture2D(outMat, m_Texture, true, 0);
         }
 
         m_RawImage.texture = (Texture) m_Texture;

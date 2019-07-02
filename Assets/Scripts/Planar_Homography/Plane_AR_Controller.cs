@@ -154,15 +154,15 @@ public class Plane_AR_Controller : MonoBehaviour
         scr_array[2] = new Point(ScreenToCameraX(cam_sw.x), ScreenToCameraY(cam_sw.y));
         scr_array[3] = new Point(ScreenToCameraX(cam_se.x), ScreenToCameraY(cam_se.y));
 
-        Debug.LogFormat("Screen Point #0: {0}, {1}", cam_nw.x, cam_nw.y);
-        Debug.LogFormat("Screen Point #1: {0}, {1}", cam_ne.x, cam_ne.y);
-        Debug.LogFormat("Screen Point #2: {0}, {1}", cam_sw.x, cam_sw.y);
-        Debug.LogFormat("Screen Point #3: {0}, {1}", cam_se.x, cam_se.y);
+        // Debug.LogFormat("Screen Point #0: {0}, {1}", cam_nw.x, cam_nw.y);
+        // Debug.LogFormat("Screen Point #1: {0}, {1}", cam_ne.x, cam_ne.y);
+        // Debug.LogFormat("Screen Point #2: {0}, {1}", cam_sw.x, cam_sw.y);
+        // Debug.LogFormat("Screen Point #3: {0}, {1}", cam_se.x, cam_se.y);
 
-        for (int i = 0; i < 4; i++)
-        {
-            Debug.LogFormat("Homography Point #{0}: {1}", i, c1_scr_points[i]);
-        }
+        // for (int i = 0; i < 4; i++)
+        // {
+        //     Debug.LogFormat("Homography Point #{0}: {1}", i, c1_scr_points[i]);
+        // }
     }
 
     void Update()
