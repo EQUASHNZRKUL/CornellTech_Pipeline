@@ -38,7 +38,6 @@ public class Plane_AR_Controller : MonoBehaviour
     } 
 
     private CV_Controller m_cv;
-    public double[] homo_points = new double[8];
     public static float DATA_SCALE = 0.05f;
     private TrackableId cached_trackableid;
 
@@ -47,9 +46,22 @@ public class Plane_AR_Controller : MonoBehaviour
     private Vector3 world_sw;
     private Vector3 world_se;
 
-    public double[] GetHomopoints()
+    private Vector2[] c1_scr_points = new Vector2[4];
+    private Vector2[] c2_scr_points = new Vector2[4];
+
+    public Vector2[] GetScreenpoints(bool c1)
     {
-        return homo_points;
+        if (c1)
+            return c1_scr_points;
+        else 
+            return c2_scr_points;
+    }
+
+    public Vector3[] GetWorldpoints()
+    {
+        Vector3[] ret = new Vector3[4];
+        ret[0] = world_nw; ret[1] = world_ne; ret[2] = world_sw; ret[3] = world_se;
+        return ret;
     }
 
     void Awake()
@@ -62,77 +74,66 @@ public class Plane_AR_Controller : MonoBehaviour
 
     void MarkerSpawn()
     {
-        // Debug.Log(string.Format("[SCREEN] ray_x: {0}\n ray_y: {1}\n ray_r: {2}", 
-        // ray_x, ray_y, ray_r));
-
         Vector2 ray_pos = m_cv.GetPos();
-        // Debug.LogFormat("{0}, {1}", ray_pos, m_cv.GetRad());
 
         bool arRayBool = m_ARRaycastManager.Raycast(ray_pos, s_Hits, TrackableType.PlaneWithinPolygon);
         bool edgeRayBool = m_ARRaycastManager.Raycast(ray_pos + (new Vector2(m_cv.GetRad(), 0)), e_Hits, TrackableType.PlaneWithinPolygon);
-        // Debug.Log(arRayBool);
+
         if (arRayBool)
         {
             var hit = s_Hits[0];
             face = hit;
             var edge = e_Hits[0];
             float dist = Vector3.Distance(hit.pose.position, edge.pose.position);
-            // Debug.Log(dist);
-            // Debug.Log(spawnedObject.transform.localScale);
 
             if (spawnedObject == null)
             {
                 spawnedObject = Instantiate(m_PlacedPrefab, hit.pose.position, hit.pose.rotation);
                 spawnedObject.transform.localScale = (new Vector3(dist, dist, dist))*10;
-                // Debug.Log(spawnedObject.transform.localScale);
             }
             else
             {
                 spawnedObject.transform.position = hit.pose.position;
                 spawnedObject.transform.localScale = (new Vector3(dist, dist, dist))*10;
-                // Debug.Log(spawnedObject.transform.localScale);
             }
         }
     }
 
-    double ScreenToCameraX(double x)
+    float ScreenToCameraX(double x)
     {
-        return (640.0/2200.0) * x;
+        return (float) ((640.0/2200.0) * x);
     }
 
-    double ScreenToCameraY(double y)
+    float ScreenToCameraY(double y)
     {
-        return (320.0/1080.0)*(1080.0 - y) + 80.0;
+        return (float) ((320.0/1080.0)*(1080.0 - y) + 80.0);
     }
 
     void RaycastSpawn()
     {
         // Spawns the Square to extract the screen coordinates in question. 
-        if (Input.touchCount > 0)
+
+        bool arRayBool = m_ARRaycastManager.Raycast(touch.position, s_Hits, TrackableType.PlaneWithinPolygon);
+        if (arRayBool)
         {
-            Touch touch = Input.GetTouch(0);
-            if (touch.phase == TouchPhase.Began)
-            {
-                bool arRayBool = m_ARRaycastManager.Raycast(touch.position, s_Hits, TrackableType.PlaneWithinPolygon);
-                if (arRayBool)
-                {
-                    var hitPose = s_Hits[0].pose;
-                    if (spawnedObject == null)
-                        spawnedObject = Instantiate(m_PlacedPrefab, hitPose.position, hitPose.rotation);
-                    else
-                        spawnedObject.transform.position = hitPose.position;
-                        // if (s_Hits[0].trackableId != cached_trackableid)
-                        //     spawnedObject.transform.rotation = hitPose.rotation;
+            var hitPose = s_Hits[0].pose;
+            if (spawnedObject == null)
+                spawnedObject = Instantiate(m_PlacedPrefab, hitPose.position, hitPose.rotation);
+            else
+                spawnedObject.transform.position = hitPose.position;
+                // if (s_Hits[0].trackableId != cached_trackableid)
+                //     spawnedObject.transform.rotation = hitPose.rotation;
 
-                    // World Coordinates of corners
-                    world_nw = spawnedObject.transform.TransformPoint(new Vector3(-DATA_SCALE, 0f, DATA_SCALE));
-                    world_ne = spawnedObject.transform.TransformPoint(new Vector3(DATA_SCALE, 0f, DATA_SCALE));
-                    world_sw = spawnedObject.transform.TransformPoint(new Vector3(-DATA_SCALE, 0f, -DATA_SCALE));
-                    world_se = spawnedObject.transform.TransformPoint(new Vector3(DATA_SCALE, 0f, -DATA_SCALE));
-                }
-            }
+            // World Coordinates of corners
+            world_nw = spawnedObject.transform.TransformPoint(new Vector3(-DATA_SCALE, 0f, DATA_SCALE));
+            world_ne = spawnedObject.transform.TransformPoint(new Vector3(DATA_SCALE, 0f, DATA_SCALE));
+            world_sw = spawnedObject.transform.TransformPoint(new Vector3(-DATA_SCALE, 0f, -DATA_SCALE));
+            world_se = spawnedObject.transform.TransformPoint(new Vector3(DATA_SCALE, 0f, -DATA_SCALE));
         }
+    }
 
+    void SetScreenPoints(bool c1)
+    {
         Camera cam = GameObject.Find("AR Camera").GetComponent<Camera>();
 
         // Screen Coordinates of corners
@@ -141,15 +142,16 @@ public class Plane_AR_Controller : MonoBehaviour
         Vector3 cam_sw = cam.WorldToScreenPoint(world_sw);
         Vector3 cam_se = cam.WorldToScreenPoint(world_se);
 
-        // Saving to homo_points
-        homo_points[0] = ScreenToCameraX(cam_nw.x);
-        homo_points[1] = ScreenToCameraY(cam_nw.y);
-        homo_points[2] = ScreenToCameraX(cam_ne.x);
-        homo_points[3] = ScreenToCameraY(cam_ne.y);
-        homo_points[4] = ScreenToCameraX(cam_sw.x);
-        homo_points[5] = ScreenToCameraY(cam_sw.y);
-        homo_points[6] = ScreenToCameraX(cam_se.x);
-        homo_points[7] = ScreenToCameraY(cam_se.y);
+        Vector2[] scr_array = c1_scr_points;
+        if (!c1)
+        {
+            scr_array = c2_scr_points;
+        }
+
+        scr_array[0] = new Vector2(ScreenToCameraX(cam_nw.x), ScreenToCameraY(cam_nw.y));
+        scr_array[1] = new Vector2(ScreenToCameraX(cam_ne.x), ScreenToCameraY(cam_ne.y));
+        scr_array[2] = new Vector2(ScreenToCameraX(cam_sw.x), ScreenToCameraY(cam_sw.y));
+        scr_array[3] = new Vector2(ScreenToCameraX(cam_se.x), ScreenToCameraY(cam_se.y));
 
         Debug.LogFormat("Screen Point #0: {0}, {1}", cam_nw.x, cam_nw.y);
         Debug.LogFormat("Screen Point #1: {0}, {1}", cam_ne.x, cam_ne.y);
@@ -158,13 +160,26 @@ public class Plane_AR_Controller : MonoBehaviour
 
         for (int i = 0; i < 4; i++)
         {
-            Debug.LogFormat("Homography Point #{0}: {1} x {2}", i, homo_points[2*i], homo_points[(2*i)+1]);
+            Debug.LogFormat("Homography Point #{0}: {1}", i, c1_scr_points[i]);
         }
     }
 
     void Update()
     {
-        RaycastSpawn();
+        // TOUCH SECTION
+        if (Input.touchCount > 0)
+        {
+            Touch touch = Input.GetTouch(0);
+            if (touch.phase == TouchPhase.Began)
+            {
+                // Cache worldpoints 
+                RaycastSpawn();
+                SetScreenPoints(true);
+            }
+        }
+
+        // FRAME SECTION
+        SetScreenPoints(false);
     }
 
     static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();

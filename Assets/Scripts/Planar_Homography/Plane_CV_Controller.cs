@@ -30,12 +30,10 @@ public class Plane_CV_Controller : MonoBehaviour
 
     public Mat imageMat = new Mat(480, 640, CvType.CV_8UC1);
     private Mat inMat = new Mat(480, 640, CvType.CV_8UC1);
-    private Mat erodeMat = new Mat(480, 640, CvType.CV_8UC1);
-    private Mat dilMat = new Mat(480, 640, CvType.CV_8UC1);
-    // private Mat homoMat = new Mat((int) HOMOGRAPHY_HEIGHT, (int) HOMOGRAPHY_WIDTH, CvType.CV_32FC1);
-    // private Mat homoMat = new Mat(480, 640, CvType.CV_32FC1);
     private Mat homoMat = new Mat(480, 640, CvType.CV_8UC1);
     public Mat outMat = new Mat(480, 640, CvType.CV_8UC1);
+
+    private Mat cached_initMat = new Mat (480, 640, CvType.CV_8UC1);
 
     private float blob_x;
     private float blob_y;
@@ -47,9 +45,6 @@ public class Plane_CV_Controller : MonoBehaviour
 
     private ScreenOrientation? m_CachedOrientation = null;
     private Texture2D m_Texture;
-
-    string circparam_path;
-    private Mat struct_elt = new Mat (3, 3, CvType.CV_8UC1);
 
     [SerializeField]
     ARCameraManager m_ARCameraManager;
@@ -97,7 +92,6 @@ public class Plane_CV_Controller : MonoBehaviour
     {
         Debug.Log("StartTest");
         Screen.autorotateToLandscapeLeft = true; 
-        circparam_path = Utils.getFilePath("circparams.yml");
         m_ARRaycastManager = GetComponent<ARRaycastManager>();
     }
 
@@ -232,6 +226,18 @@ public class Plane_CV_Controller : MonoBehaviour
         // Process the image here: 
         unsafe {
             IntPtr greyPtr = (IntPtr) greyscale.data.GetUnsafePtr();
+
+            // TOUCH: Cache image on touch
+            if (Input.touchCount > 0)
+            {
+                Touch touch = Input.GetTouch(0);
+                if (touch.phase == TouchPhase.Began)
+                {
+                    // Cache original image
+                    Utils.copyToMat(greyPtr, cached_initMat);
+                }
+            }
+
             ComputerVisionAlgo(greyPtr);
 
             // Displays OpenCV Mat as a Texture
@@ -239,10 +245,8 @@ public class Plane_CV_Controller : MonoBehaviour
         }
 
         m_RawImage.texture = (Texture) m_Texture;
-
-        // Displays Raycast coordinates 
-        // FindRaycastPoint();
     }
+    
     static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
 
     ARRaycastManager m_ARRaycastManager;
