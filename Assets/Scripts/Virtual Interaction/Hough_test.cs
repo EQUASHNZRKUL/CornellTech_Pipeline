@@ -10,6 +10,8 @@ using OpenCVForUnity;
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.UnityUtils;
 using OpenCVForUnity.ImgprocModule;
+using OpenCVForUnity.Features2dModule;
+using OpenCVForUnity.Xfeatures2dModule;
 
 /// <summary>
 /// Listens for touch events and performs an AR raycast from the screen touch point.
@@ -23,9 +25,10 @@ using OpenCVForUnity.ImgprocModule;
 public class Hough_test : MonoBehaviour
 {
     public Mat imageMat = new Mat(480, 640, CvType.CV_8UC1);
-    public Mat edgeMat = new Mat(480, 640, CvType.CV_8UC1);
+    public Mat cornerMat = new Mat(480, 640, CvType.CV_8UC1);
     public Mat outMat = new Mat(480, 640, CvType.CV_8UC1);
-    public Mat circMat = new Mat(3, 5, CvType.CV_8UC1);
+    public Mat normMat = new Mat(480, 640, CvType.CV_8UC1);
+    public Mat scaleMat = new Mat(480, 640, CvType.CV_8UC1);
     private Size null_size = new Size(3.0, 5.0);
     private double DP_CONST = 2.0;
 
@@ -81,20 +84,25 @@ public class Hough_test : MonoBehaviour
     {
         Utils.copyToMat(greyscale, imageMat);
 
-        outMat = imageMat;
+        // Creating Detector (Red Circle)
+        MatOfKeyPoint keyMat = new MatOfKeyPoint();
+        HarrisLaplaceFeatureDetector detector = HarrisLaplaceFeatureDetector.create(6, 0.015f, 0.015f, 5);
 
-        // Imgproc.Canny(imageMat, edgeMat, 90, 150);
-        Imgproc.HoughCircles(imageMat, circMat, Imgproc.HOUGH_GRADIENT, DP_CONST, 100.0);
+        // Finding circles
+        Debug.Log(keyMat.size());
+        detector.detect(imageMat, keyMat);
+        if (keyMat.size().height > 0)
+        {
+            double blob_x = keyMat.get(0, 0)[0];
+            double blob_y = keyMat.get(0, 0)[1];
+            double blob_r = keyMat.get(0, 0)[2];
+        }
 
-        if (circMat.size() == null_size)
-        {
-            Debug.Log("No circles found");
-        }
-        else
-        {
-            double[] c_data = circMat.get(0, 0);
-            Imgproc.circle(outMat, new Point(c_data[0], c_data[1]), (int) c_data[2], new Scalar(0.0, 0.0, 255.0));
-        }
+        // Visualizing detected circles
+        // m_ImageInfo.text = string.Format("Circle Count: {0}\n Circle[0]: {1} x {2} -- {3}", 
+        // keyMat.size().height, blob_x, blob_y, blob_r);
+
+        Features2d.drawKeypoints(imageMat, keyMat, outMat);
     }
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
@@ -156,8 +164,8 @@ public class Hough_test : MonoBehaviour
 
         m_RawImage.texture = (Texture) m_Texture;
 
-        double[] c_data = circMat.get(0, 0);
-        m_ImageInfo.text = string.Format("Circle Count: {0}\n Circle[0]: {1} x {2} -- {3}", 
-        circMat.size().width, c_data[0], c_data[1], c_data[2]);
+        // double[] c_data = circMat.get(0, 0);
+        // m_ImageInfo.text = string.Format("Circle Count: {0}\n Circle[0]: {1} x {2} -- {3}", 
+        // circMat.size().width, c_data[0], c_data[1], c_data[2]);
     }
 }
