@@ -13,6 +13,7 @@ using OpenCVForUnity.UnityUtils;
 using OpenCVForUnity.ImgprocModule;
 using OpenCVForUnity.Features2dModule;
 using OpenCVForUnity.Calib3dModule;
+using OpenCVForUnity.Xfeatures2dModule;
 
 /// <summary>
 /// Listens for touch events and performs an AR raycast from the screen touch point.
@@ -98,7 +99,7 @@ public class Plane_CV_Controller : MonoBehaviour
             m_ARCameraManager.frameReceived -= OnCameraFrameReceived;
     }
 
-    void ComputerVisionAlgo(IntPtr greyscale) 
+    void HomographyTransform(IntPtr greyscale) 
     {
         // Utils.copyToMat(greyscale, imageMat);
         inMat = cached_initMat;
@@ -113,6 +114,23 @@ public class Plane_CV_Controller : MonoBehaviour
         Mat H = Calib3d.findHomography(initPoints, currPoints);
 
         Imgproc.warpPerspective(inMat, outMat, H, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
+    }
+
+    void CornerDetection() {
+        // Creating Detector
+        int octaves = 6;
+        float corner_thresh = 0.015f;
+        float dog_thresh = 0.015f;
+        int max_detections = 5;
+        HarrisLaplaceFeatureDetector detector = HarrisLaplaceFeatureDetector.create(
+            octaves, corner_thresh, dog_thresh, max_detections);
+
+        // Finding corners
+        MatOfKeyPoint keyMat = new MatOfKeyPoint();
+        detector.detect(imageMat, keyMat);
+
+        // Draw corners
+        Features2d.drawKeypoints(imageMat, keyMat, outMat);
     }
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
@@ -181,10 +199,13 @@ public class Plane_CV_Controller : MonoBehaviour
                 {
                     // Cache original image
                     Utils.copyToMat(greyPtr, cached_initMat);
+
+                    // Detect reference points
+                    CornerDetection();
                 }
             }
 
-            ComputerVisionAlgo(greyPtr);
+            HomographyTransform(greyPtr);
 
             // Displays OpenCV Mat as a Texture
             Utils.matToTexture2D(outMat, m_Texture, true, 0);
