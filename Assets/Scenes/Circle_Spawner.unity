@@ -422,7 +422,7 @@ GameObject:
   - component: {fileID: 515354192}
   - component: {fileID: 515354194}
   - component: {fileID: 515354195}
-  - component: {fileID: 515354197}
+  - component: {fileID: 515354196}
   m_Layer: 0
   m_Name: CV_Controller
   m_TagString: Untagged
@@ -493,7 +493,7 @@ MonoBehaviour:
   m_ARCameraManager: {fileID: 282840816}
   m_RawImage: {fileID: 1669868212}
   m_ImageInfo: {fileID: 519562891}
---- !u!114 &515354197
+--- !u!114 &515354196
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -502,7 +502,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 515354191}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 61576ce7284d044138ad495d8c417dbf, type: 3}
+  m_Script: {fileID: 11500000, guid: fec5e852aca134f059f40a11a8274077, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   THRESH_VAL: 150
@@ -690,9 +690,9 @@ GameObject:
   - component: {fileID: 1335839535}
   - component: {fileID: 1335839534}
   - component: {fileID: 1335839537}
-  - component: {fileID: 1335839536}
   - component: {fileID: 1335839538}
   - component: {fileID: 1335839539}
+  - component: {fileID: 1335839536}
   m_Layer: 0
   m_Name: AR Session Origin
   m_TagString: Untagged
@@ -737,7 +737,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1335839533}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: effd15f573e8148b183750fa7796ae16, type: 3}
+  m_Script: {fileID: 11500000, guid: ed7bb728282814a7cae102574d7cde82, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_ARCameraManager: {fileID: 282840816}

@@ -35,13 +35,7 @@ public class Plane_CV_Controller : MonoBehaviour
 
     private Mat cached_initMat = new Mat (480, 640, CvType.CV_8UC1);
 
-    private float blob_x;
-    private float blob_y;
-    private float blob_r;
-
-    private float ray_x;
-    private float ray_y;
-    private float ray_r;
+    private MatOfKeyPoint keyMat = new MatOfKeyPoint();
 
     private ScreenOrientation? m_CachedOrientation = null;
     private Texture2D m_Texture;
@@ -99,6 +93,25 @@ public class Plane_CV_Controller : MonoBehaviour
             m_ARCameraManager.frameReceived -= OnCameraFrameReceived;
     }
 
+    Point[] getCornerPoints()
+    {
+        if (keyMat.size().width < 4)
+            return new Point[0]; 
+
+        double[] point1 = keyMat.get(0,0);
+        double[] point2 = keyMat.get(1,0);
+        double[] point3 = keyMat.get(2,0);
+        double[] point4 = keyMat.get(3,0);
+
+        Point[] ret = new Point[4];
+        ret[0] = new Point(point1[0], point1[1]);
+        ret[1] = new Point(point2[0], point2[1]);
+        ret[2] = new Point(point3[0], point3[1]);
+        ret[3] = new Point(point4[0], point4[1]);
+
+        return ret;
+    }
+
     void HomographyTransform(IntPtr greyscale) 
     {
         // Utils.copyToMat(greyscale, imageMat);
@@ -126,10 +139,22 @@ public class Plane_CV_Controller : MonoBehaviour
             octaves, corner_thresh, dog_thresh, max_detections);
 
         // Finding corners
-        MatOfKeyPoint keyMat = new MatOfKeyPoint();
+        // imageMat = cached_initMat;
+        Core.flip(cached_initMat, imageMat, 0);
+        keyMat = new MatOfKeyPoint();
         detector.detect(imageMat, keyMat);
 
         // Draw corners
+        Features2d.drawKeypoints(imageMat, keyMat, outMat);
+    }
+
+    void ComputerVisionAlgo(IntPtr greyscale)
+    {
+        Utils.copyToMat(greyscale, imageMat);
+        
+        MatOfKeyPoint keyMat = new MatOfKeyPoint();
+        HarrisLaplaceFeatureDetector detector = HarrisLaplaceFeatureDetector.create(6, 0.015f, 0.015f, 5);
+        detector.detect(imageMat, keyMat);
         Features2d.drawKeypoints(imageMat, keyMat, outMat);
     }
 
@@ -179,14 +204,6 @@ public class Plane_CV_Controller : MonoBehaviour
 
         image.Dispose();
 
-        // Sets orientation of screen if necessary
-        if (m_CachedOrientation == null || m_CachedOrientation != Screen.orientation)
-        {
-            // TODO: Debug why doesn't initiate with ConfigRawimage(). The null isn't triggering here. Print cached Orientation
-            m_CachedOrientation = Screen.orientation;
-            ConfigureRawImageInSpace(img_dim);
-        }
-
         // Process the image here: 
         unsafe {
             IntPtr greyPtr = (IntPtr) greyscale.data.GetUnsafePtr();
@@ -202,13 +219,26 @@ public class Plane_CV_Controller : MonoBehaviour
 
                     // Detect reference points
                     CornerDetection();
+                    // ComputerVisionAlgo(greyPtr);
+                    Debug.Log(keyMat.size());
+                
                 }
             }
+            // Debug.Log(keyMat.get(0,0)[0]);
 
-            HomographyTransform(greyPtr);
+            // Try ignoring Homography code and displaying detected corners
+            // HomographyTransform(greyPtr);
 
             // Displays OpenCV Mat as a Texture
-            Utils.matToTexture2D(outMat, m_Texture, true, 0);
+            Utils.matToTexture2D(outMat, m_Texture, false, 0);
+        }
+
+        // Sets orientation of screen if necessary
+        if (m_CachedOrientation == null || m_CachedOrientation != Screen.orientation)
+        {
+            // TODO: Debug why doesn't initiate with ConfigRawimage(). The null isn't triggering here. Print cached Orientation
+            m_CachedOrientation = Screen.orientation;
+            ConfigureRawImageInSpace(img_dim);
         }
 
         m_RawImage.texture = (Texture) m_Texture;

@@ -50,7 +50,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/UX/SampleUXScene.unity
     guid: 3b42d67a72bbc4004bf713db0e312326
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Pipeline.unity
     guid: 36cd1829a3e8c4ef79aa4fd2632188c1
   - enabled: 0
@@ -62,7 +62,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/Homography Demo.unity
     guid: 9bc111a730bd14214bdc57836b2f7355
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/Planar_Homography.unity
     guid: 74fa4c3bba96c4db9b3889f3ed4a8ab2
   m_configObjects:

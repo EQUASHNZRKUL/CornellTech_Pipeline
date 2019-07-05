@@ -133,6 +133,11 @@ public class Plane_AR_Controller : MonoBehaviour
         }
     }
 
+    void CornerSpawn()
+    {
+        // bool arRayBool = m_ARRaycastManager.Raycast()
+    }
+
     void SetScreenPoints(bool c1)
     {
         Camera cam = GameObject.Find("AR Camera").GetComponent<Camera>();
