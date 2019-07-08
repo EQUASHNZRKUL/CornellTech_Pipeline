@@ -30,6 +30,9 @@ public class Plane_CV_Controller : MonoBehaviour
     public static double HOMOGRAPHY_HEIGHT = 480.0;
 
     public Mat imageMat = new Mat(480, 640, CvType.CV_8UC1);
+    private Mat harrisMat = new Mat(480, 640, CvType.CV_8UC1);
+    private Mat normMat = new Mat(480, 640, CvType.CV_8UC1);
+    private Mat scaleMat = new Mat(480, 640, CvType.CV_8UC1);
     private Mat inMat = new Mat(480, 640, CvType.CV_8UC1); 
     public Mat outMat = new Mat(480, 640, CvType.CV_8UC1);
 
@@ -148,14 +151,21 @@ public class Plane_CV_Controller : MonoBehaviour
         Features2d.drawKeypoints(imageMat, keyMat, outMat);
     }
 
-    void ComputerVisionAlgo(IntPtr greyscale)
+    void HarrisDetection()
     {
-        Utils.copyToMat(greyscale, imageMat);
-        
-        MatOfKeyPoint keyMat = new MatOfKeyPoint();
-        HarrisLaplaceFeatureDetector detector = HarrisLaplaceFeatureDetector.create(6, 0.015f, 0.015f, 5);
-        detector.detect(imageMat, keyMat);
-        Features2d.drawKeypoints(imageMat, keyMat, outMat);
+        Core.flip(cached_initMat, imageMat, 0);
+
+        int blockSize = 2;
+        int ksize = 3;
+        double k = 0.04;
+        Imgproc.cornerHarris(imageMat, harrisMat, blockSize, ksize, k);
+        Core.normalize(harrisMat, normMat, 0, 255);
+        normMat.convertTo(normMat, CvType.CV_8UC1);
+        // Core.convertScaleAbs(normMat, scaleMat);
+
+        Debug.Log(normMat);
+        Debug.Log(normMat.get(0, 0)[0]);
+        Imgproc.threshold(normMat, outMat, 5.0, 255.0, Imgproc.THRESH_BINARY);
     }
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
@@ -218,10 +228,9 @@ public class Plane_CV_Controller : MonoBehaviour
                     Utils.copyToMat(greyPtr, cached_initMat);
 
                     // Detect reference points
-                    CornerDetection();
-                    // ComputerVisionAlgo(greyPtr);
+                    // CornerDetection();
+                    HarrisDetection();
                     Debug.Log(keyMat.size());
-                
                 }
             }
             // Debug.Log(keyMat.get(0,0)[0]);
