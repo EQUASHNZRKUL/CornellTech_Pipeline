@@ -153,10 +153,35 @@ public class Plane_CV_Controller : MonoBehaviour
         // inMat = imageMat; 
 
         Core.flip(cached_initMat, imageMat, 0);
+
         keyMat = new MatOfKeyPoint();
         detector.detect(imageMat, keyMat);
 
-        Features2d.drawKeypoints(imageMat, keyMat, outMat);
+        // Features2d.drawKeypoints(imageMat, keyMat, outMat);
+
+        if (keyMat.rows() < 4) 
+            return; 
+
+        // Core.flip(cached_initMat, imageMat, 0);
+        Point[] srcPointArray = new Point[4]; 
+        for (int i = 0; i < 4; i++)
+        {
+            srcPointArray[i] = new Point(keyMat.get(i, 0)[0], keyMat.get(i, 0)[1]);
+        }
+
+        Point[] dstPointArray = new Point[4];
+        dstPointArray[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
+        dstPointArray[1] = new Point(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT);
+        dstPointArray[2] = new Point(0.0, 0.0);
+        dstPointArray[3] = new Point(HOMOGRAPHY_WIDTH, 0.0);
+
+        MatOfPoint2f srcPoints = new MatOfPoint2f(srcPointArray);
+        MatOfPoint2f dstPoints = new MatOfPoint2f(dstPointArray);
+
+        // Creating the H Matrix
+        Mat Homo_Mat = Calib3d.findHomography(srcPoints, dstPoints);
+
+        Imgproc.warpPerspective(imageMat, outMat, Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
     }
 
     void ComputerVisionAlgo(IntPtr greyscale)
