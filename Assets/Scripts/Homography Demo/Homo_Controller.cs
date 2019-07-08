@@ -37,10 +37,6 @@ public class Homo_Controller : MonoBehaviour
     private Mat homoMat = new Mat(480, 640, CvType.CV_8UC1);
     public Mat outMat = new Mat(480, 640, CvType.CV_8UC1);
 
-    private float blob_x;
-    private float blob_y;
-    private float blob_r;
-
     private float ray_x;
     private float ray_y;
     private float ray_r;
