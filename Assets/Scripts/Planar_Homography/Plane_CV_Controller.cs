@@ -34,6 +34,7 @@ public class Plane_CV_Controller : MonoBehaviour
     public Mat outMat = new Mat(480, 640, CvType.CV_8UC1);
 
     private Mat cached_initMat = new Mat (480, 640, CvType.CV_8UC1);
+    private Mat cached_homoMat = new Mat (480, 640, CvType.CV_8UC1);
 
     private MatOfKeyPoint keyMat = new MatOfKeyPoint();
     private Point[] srcPointArray = new Point[4];
@@ -113,24 +114,6 @@ public class Plane_CV_Controller : MonoBehaviour
         ret[3] = new Point(point4[0], point4[1]);
 
         return ret;
-    }
-
-    void HomographyTransform(IntPtr greyscale) 
-    {
-        // Utils.copyToMat(greyscale, imageMat);
-        inMat = cached_initMat;
-
-        Plane_AR_Controller Homo_Controller = m_ARSessionManager.GetComponent<Plane_AR_Controller>();
-        // Point[] c1_scrpoints = Homo_Controller.GetScreenpoints(true);
-        Point[] c2_scrpoints = Homo_Controller.GetScreenpoints(false);
-
-        // MatOfPoint2f initPoints = new MatOfPoint2f(c1_scrpoints);
-        MatOfPoint2f initPoints = new MatOfPoint2f();
-        MatOfPoint2f currPoints = new MatOfPoint2f(c2_scrpoints);
-
-        Mat H = Calib3d.findHomography(initPoints, currPoints);
-
-        Imgproc.warpPerspective(inMat, outMat, H, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
     }
 
     void CornerDetection() {
@@ -238,17 +221,25 @@ public class Plane_CV_Controller : MonoBehaviour
         // Creating the H Matrix
         Mat Homo_Mat = Calib3d.findHomography(srcPoints, regPoints);
 
-        Imgproc.warpPerspective(imageMat, outMat, Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
+        Imgproc.warpPerspective(cached_homoMat, outMat, Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
     }
 
-    void ComputerVisionAlgo(IntPtr greyscale)
+    void HomographyTransform(IntPtr greyscale) 
     {
-        Utils.copyToMat(greyscale, imageMat);
-        
-        MatOfKeyPoint keyMat = new MatOfKeyPoint();
-        HarrisLaplaceFeatureDetector detector = HarrisLaplaceFeatureDetector.create(6, 0.015f, 0.015f, 5);
-        detector.detect(imageMat, keyMat);
-        Features2d.drawKeypoints(imageMat, keyMat, outMat);
+        // Utils.copyToMat(greyscale, imageMat);
+        inMat = cached_initMat;
+
+        Plane_AR_Controller Homo_Controller = m_ARSessionManager.GetComponent<Plane_AR_Controller>();
+        // Point[] c1_scrpoints = Homo_Controller.GetScreenpoints(true);
+        Point[] c2_scrpoints = Homo_Controller.GetScreenpoints(false);
+
+        // MatOfPoint2f initPoints = new MatOfPoint2f(c1_scrpoints);
+        MatOfPoint2f initPoints = new MatOfPoint2f();
+        MatOfPoint2f currPoints = new MatOfPoint2f(c2_scrpoints);
+
+        Mat H = Calib3d.findHomography(initPoints, currPoints);
+
+        Imgproc.warpPerspective(inMat, outMat, H, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
     }
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
