@@ -148,6 +148,64 @@ public class Plane_CV_Controller : MonoBehaviour
         Features2d.drawKeypoints(imageMat, keyMat, outMat);
     }
 
+    void SortPoints(ref Point[] pointArray) {
+        Point storeGreaterY(Point fst, Point snd) {
+            if (fst.y > snd.y)
+                return fst; 
+            return snd; 
+        }
+
+        // Find top points
+        Point one = new Point(0.0, 0.0);
+        Point two = new Point(0.0, 0.0);
+        int i_1 = 0;
+        int i_2 = 0;
+        for (int i = 0; i < 4; i++) {
+            one = storeGreaterY(one, pointArray[i]);
+            i_1 = i; 
+        }
+        for (int i = 0; i < 4; i++) {
+            if (pointArray[i] != one) {
+                two = storeGreaterY(two, pointArray[i]);
+                i_2 = i;
+            }
+        }
+        if (one.x > two.x) { // Swap if necessary
+            Point tmp = one; 
+            one = two; 
+            two = tmp; 
+        }
+
+        // Find low points
+        Point three = new Point(0.0, 0.0);
+        Point four = new Point(0.0, 0.0);
+        for (int i = 0; i < 4; i++) {
+            if ((pointArray[i] != one) && (pointArray[i] != two)) {
+                if (three == four) { // TODO; replace with == new point(0.0, 0.0)
+                    three = pointArray[i];
+                }
+                else {
+                    four = pointArray[i];
+                }
+            }
+        }
+        if (three.x > four.x) { // Swap if necessary
+            Point tmp = three; 
+            three = four; 
+            four = tmp; 
+        }
+
+        // storing sorted values
+        pointArray[0] = one;
+        pointArray[1] = two; 
+        pointArray[2] = three; 
+        pointArray[3] = four; 
+        Debug.Log(one);
+        Debug.Log(two);
+        Debug.Log(three);
+        Debug.Log(four);
+    }
+
     void BlobDetection() {
         SimpleBlobDetector detector = SimpleBlobDetector.create();
         // inMat = imageMat; 
@@ -167,7 +225,10 @@ public class Plane_CV_Controller : MonoBehaviour
         for (int i = 0; i < 4; i++)
         {
             srcPointArray[i] = new Point(keyMat.get(i, 0)[0], keyMat.get(i, 0)[1]);
+            Debug.Log(srcPointArray[i]);
         }
+        
+        SortPoints(ref srcPointArray);
 
         Point[] dstPointArray = new Point[4];
         dstPointArray[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
