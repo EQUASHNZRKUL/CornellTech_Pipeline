@@ -36,6 +36,9 @@ public class Plane_CV_Controller : MonoBehaviour
     private Mat cached_initMat = new Mat (480, 640, CvType.CV_8UC1);
 
     private MatOfKeyPoint keyMat = new MatOfKeyPoint();
+    private Point[] srcPointArray = new Point[4];
+    private Point[] regPointArray = new Point[4];
+    private Point[] dstPointArray = new Point[4];
 
     private ScreenOrientation? m_CachedOrientation = null;
     private Texture2D m_Texture;
@@ -118,10 +121,11 @@ public class Plane_CV_Controller : MonoBehaviour
         inMat = cached_initMat;
 
         Plane_AR_Controller Homo_Controller = m_ARSessionManager.GetComponent<Plane_AR_Controller>();
-        Point[] c1_scrpoints = Homo_Controller.GetScreenpoints(true);
+        // Point[] c1_scrpoints = Homo_Controller.GetScreenpoints(true);
         Point[] c2_scrpoints = Homo_Controller.GetScreenpoints(false);
 
-        MatOfPoint2f initPoints = new MatOfPoint2f(c1_scrpoints);
+        // MatOfPoint2f initPoints = new MatOfPoint2f(c1_scrpoints);
+        MatOfPoint2f initPoints = new MatOfPoint2f();
         MatOfPoint2f currPoints = new MatOfPoint2f(c2_scrpoints);
 
         Mat H = Calib3d.findHomography(initPoints, currPoints);
@@ -148,7 +152,7 @@ public class Plane_CV_Controller : MonoBehaviour
         Features2d.drawKeypoints(imageMat, keyMat, outMat);
     }
 
-    void SortPoints(ref Point[] pointArray) {
+    void SortPoints() {
         Point storeGreaterY(Point fst, Point snd) {
             if (fst.y > snd.y)
                 return fst; 
@@ -161,12 +165,12 @@ public class Plane_CV_Controller : MonoBehaviour
         int i_1 = 0;
         int i_2 = 0;
         for (int i = 0; i < 4; i++) {
-            one = storeGreaterY(one, pointArray[i]);
+            one = storeGreaterY(one, srcPointArray[i]);
             i_1 = i; 
         }
         for (int i = 0; i < 4; i++) {
-            if (pointArray[i] != one) {
-                two = storeGreaterY(two, pointArray[i]);
+            if (srcPointArray[i] != one) {
+                two = storeGreaterY(two, srcPointArray[i]);
                 i_2 = i;
             }
         }
@@ -180,12 +184,12 @@ public class Plane_CV_Controller : MonoBehaviour
         Point three = new Point(0.0, 0.0);
         Point four = new Point(0.0, 0.0);
         for (int i = 0; i < 4; i++) {
-            if ((pointArray[i] != one) && (pointArray[i] != two)) {
+            if ((srcPointArray[i] != one) && (srcPointArray[i] != two)) {
                 if (three == four) { // TODO; replace with == new point(0.0, 0.0)
-                    three = pointArray[i];
+                    three = srcPointArray[i];
                 }
                 else {
-                    four = pointArray[i];
+                    four = srcPointArray[i];
                 }
             }
         }
@@ -196,14 +200,10 @@ public class Plane_CV_Controller : MonoBehaviour
         }
 
         // storing sorted values
-        pointArray[0] = one;
-        pointArray[1] = two; 
-        pointArray[2] = three; 
-        pointArray[3] = four; 
-        Debug.Log(one);
-        Debug.Log(two);
-        Debug.Log(three);
-        Debug.Log(four);
+        srcPointArray[0] = one;
+        srcPointArray[1] = two; 
+        srcPointArray[2] = three; 
+        srcPointArray[3] = four; 
     }
 
     void BlobDetection() {
@@ -220,27 +220,23 @@ public class Plane_CV_Controller : MonoBehaviour
         if (keyMat.rows() < 4) 
             return; 
 
-        // Core.flip(cached_initMat, imageMat, 0);
-        Point[] srcPointArray = new Point[4]; 
         for (int i = 0; i < 4; i++)
         {
             srcPointArray[i] = new Point(keyMat.get(i, 0)[0], keyMat.get(i, 0)[1]);
-            Debug.Log(srcPointArray[i]);
         }
         
-        SortPoints(ref srcPointArray);
+        SortPoints();
 
-        Point[] dstPointArray = new Point[4];
-        dstPointArray[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
-        dstPointArray[1] = new Point(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT);
-        dstPointArray[2] = new Point(0.0, 0.0);
-        dstPointArray[3] = new Point(HOMOGRAPHY_WIDTH, 0.0);
+        regPointArray[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
+        regPointArray[1] = new Point(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT);
+        regPointArray[2] = new Point(0.0, 0.0);
+        regPointArray[3] = new Point(HOMOGRAPHY_WIDTH, 0.0);
 
         MatOfPoint2f srcPoints = new MatOfPoint2f(srcPointArray);
-        MatOfPoint2f dstPoints = new MatOfPoint2f(dstPointArray);
+        MatOfPoint2f regPoints = new MatOfPoint2f(regPointArray);
 
         // Creating the H Matrix
-        Mat Homo_Mat = Calib3d.findHomography(srcPoints, dstPoints);
+        Mat Homo_Mat = Calib3d.findHomography(srcPoints, regPoints);
 
         Imgproc.warpPerspective(imageMat, outMat, Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
     }
@@ -315,14 +311,11 @@ public class Plane_CV_Controller : MonoBehaviour
                     Utils.copyToMat(greyPtr, cached_initMat);
 
                     // Detect reference points
-                    // CornerDetection();
                     BlobDetection();
-                    // ComputerVisionAlgo(greyPtr);
                     Debug.Log(keyMat.size());
                 
                 }
             }
-            // Debug.Log(keyMat.get(0,0)[0]);
 
             // Try ignoring Homography code and displaying detected corners
             // HomographyTransform(greyPtr);
