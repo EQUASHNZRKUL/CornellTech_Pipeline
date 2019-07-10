@@ -42,10 +42,7 @@ public class Plane_AR_Controller : MonoBehaviour
     public static float DATA_SCALE = 0.05f;
     private TrackableId cached_trackableid;
 
-    private Vector3 world_nw;
-    private Vector3 world_ne;
-    private Vector3 world_sw;
-    private Vector3 world_se;
+    public Vector3[] world_points = new Vector3[4];
 
     private Point[] c1_scr_points = new Point[4];
     private Point[] c2_scr_points = new Point[4];
@@ -58,12 +55,12 @@ public class Plane_AR_Controller : MonoBehaviour
             return c2_scr_points;
     }
 
-    public Vector3[] GetWorldpoints()
-    {
-        Vector3[] ret = new Vector3[4];
-        ret[0] = world_nw; ret[1] = world_ne; ret[2] = world_sw; ret[3] = world_se;
-        return ret;
-    }
+    // public Vector3[] GetWorldpoints()
+    // {
+    //     Vector3[] ret = new Vector3[4];
+    //     ret[0] = world_nw; ret[1] = world_ne; ret[2] = world_sw; ret[3] = world_se;
+    //     return ret;
+    // }
 
     void Awake()
     {
@@ -110,54 +107,64 @@ public class Plane_AR_Controller : MonoBehaviour
         return (float) ((320.0/1080.0)*(1080.0 - y) + 80.0);
     }
 
-    void RaycastSpawn(Vector2 touchpos)
-    {
-        // Spawns the Square to extract the screen coordinates in question. 
+    // void RaycastSpawn(Vector2 touchpos)
+    // {
+    //     // Spawns the Square to extract the screen coordinates in question. 
 
-        bool arRayBool = m_ARRaycastManager.Raycast(touchpos, s_Hits, TrackableType.PlaneWithinPolygon);
-        if (arRayBool)
+    //     bool arRayBool = m_ARRaycastManager.Raycast(touchpos, s_Hits, TrackableType.PlaneWithinPolygon);
+    //     if (arRayBool)
+    //     {
+    //         var hitPose = s_Hits[0].pose;
+    //         if (spawnedObject == null)
+    //             spawnedObject = Instantiate(m_PlacedPrefab, hitPose.position, hitPose.rotation);
+    //         else
+    //             spawnedObject.transform.position = hitPose.position;
+    //             // if (s_Hits[0].trackableId != cached_trackableid)
+    //             //     spawnedObject.transform.rotation = hitPose.rotation;
+
+    //         // World Coordinates of corners
+    //         world_nw = spawnedObject.transform.TransformPoint(new Vector3(-DATA_SCALE, 0f, DATA_SCALE));
+    //         world_ne = spawnedObject.transform.TransformPoint(new Vector3(DATA_SCALE, 0f, DATA_SCALE));
+    //         world_sw = spawnedObject.transform.TransformPoint(new Vector3(-DATA_SCALE, 0f, -DATA_SCALE));
+    //         world_se = spawnedObject.transform.TransformPoint(new Vector3(DATA_SCALE, 0f, -DATA_SCALE));
+    //     }
+    // }
+
+    void SetWorldPoints()
+    {
+        Plane_CV_Controller CV_Controller = GameObject.Find("CV_Controller").GetComponent<Plane_CV_Controller>();
+        Point[] c1_points = CV_Controller.GetC1Points();
+
+        // for (int i = 0; i < c1_points.Length; i++)
+        for (int i = 0; i < 4; i++)
         {
-            var hitPose = s_Hits[0].pose;
-            if (spawnedObject == null)
-                spawnedObject = Instantiate(m_PlacedPrefab, hitPose.position, hitPose.rotation);
-            else
-                spawnedObject.transform.position = hitPose.position;
-                // if (s_Hits[0].trackableId != cached_trackableid)
-                //     spawnedObject.transform.rotation = hitPose.rotation;
-
-            // World Coordinates of corners
-            world_nw = spawnedObject.transform.TransformPoint(new Vector3(-DATA_SCALE, 0f, DATA_SCALE));
-            world_ne = spawnedObject.transform.TransformPoint(new Vector3(DATA_SCALE, 0f, DATA_SCALE));
-            world_sw = spawnedObject.transform.TransformPoint(new Vector3(-DATA_SCALE, 0f, -DATA_SCALE));
-            world_se = spawnedObject.transform.TransformPoint(new Vector3(DATA_SCALE, 0f, -DATA_SCALE));
+            Point screen_point = c1_points[i];
+            Vector2 screen_vec = new Vector2((float) screen_point.x, (float) screen_point.y);
+            bool arRayBool = m_ARRaycastManager.Raycast(screen_vec, s_Hits, TrackableType.PlaneWithinPolygon);
+            world_points[i] = s_Hits[0].pose.position; 
         }
-    }
-
-    void CornerSpawn()
-    {
-        // bool arRayBool = m_ARRaycastManager.Raycast()
     }
 
     void SetScreenPoints(bool c1)
     {
-        Camera cam = GameObject.Find("AR Camera").GetComponent<Camera>();
+        // Camera cam = GameObject.Find("AR Camera").GetComponent<Camera>();
 
-        // Screen Coordinates of corners
-        Vector3 cam_nw = cam.WorldToScreenPoint(world_nw);
-        Vector3 cam_ne = cam.WorldToScreenPoint(world_ne);
-        Vector3 cam_sw = cam.WorldToScreenPoint(world_sw);
-        Vector3 cam_se = cam.WorldToScreenPoint(world_se);
+        // // Screen Coordinates of corners
+        // Vector3 cam_nw = cam.WorldToScreenPoint(world_nw);
+        // Vector3 cam_ne = cam.WorldToScreenPoint(world_ne);
+        // Vector3 cam_sw = cam.WorldToScreenPoint(world_sw);
+        // Vector3 cam_se = cam.WorldToScreenPoint(world_se);
 
-        Point[] scr_array = c1_scr_points;
-        if (!c1)
-        {
-            scr_array = c2_scr_points;
-        }
+        // Point[] scr_array = c1_scr_points;
+        // if (!c1)
+        // {
+        //     scr_array = c2_scr_points;
+        // }
 
-        scr_array[0] = new Point(ScreenToCameraX(cam_nw.x), ScreenToCameraY(cam_nw.y));
-        scr_array[1] = new Point(ScreenToCameraX(cam_ne.x), ScreenToCameraY(cam_ne.y));
-        scr_array[2] = new Point(ScreenToCameraX(cam_sw.x), ScreenToCameraY(cam_sw.y));
-        scr_array[3] = new Point(ScreenToCameraX(cam_se.x), ScreenToCameraY(cam_se.y));
+        // scr_array[0] = new Point(ScreenToCameraX(cam_nw.x), ScreenToCameraY(cam_nw.y));
+        // scr_array[1] = new Point(ScreenToCameraX(cam_ne.x), ScreenToCameraY(cam_ne.y));
+        // scr_array[2] = new Point(ScreenToCameraX(cam_sw.x), ScreenToCameraY(cam_sw.y));
+        // scr_array[3] = new Point(ScreenToCameraX(cam_se.x), ScreenToCameraY(cam_se.y));
     }
 
     void Update()
@@ -169,7 +176,8 @@ public class Plane_AR_Controller : MonoBehaviour
             if (touch.phase == TouchPhase.Began)
             {
                 // Cache worldpoints 
-                RaycastSpawn(touch.position);
+                // RaycastSpawn(touch.position);
+                SetWorldPoints(); 
                 SetScreenPoints(true);
             }
         }

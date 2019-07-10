@@ -233,7 +233,8 @@ public class Plane_CV_Controller : MonoBehaviour
     {
         Plane_AR_Controller Homo_Controller = m_ARSessionManager.GetComponent<Plane_AR_Controller>();
         // Point[] c1_scrpoints = Homo_Controller.GetScreenpoints(true);
-        Point[] c2_scrpoints = Homo_Controller.GetScreenpoints(false);
+        // Point[] c2_scrpoints = Homo_Controller.GetScreenpoints(false);
+        // TODO: get new c2_scrpoints; 
 
         MatOfPoint2f initPoints = new MatOfPoint2f(regPointArray);
         // MatOfPoint2f initPoints = new MatOfPoint2f(c1_scrpoints);
