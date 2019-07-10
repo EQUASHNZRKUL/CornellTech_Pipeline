@@ -115,7 +115,7 @@ public class Plane_AR_Controller : MonoBehaviour
         }
     }
 
-    void SetScreenPoints(bool c1)
+    void SetScreenPoints()
     {
         Camera cam = GameObject.Find("AR Camera").GetComponent<Camera>();
 
@@ -135,14 +135,12 @@ public class Plane_AR_Controller : MonoBehaviour
             if (touch.phase == TouchPhase.Began)
             {
                 // Cache worldpoints 
-                // RaycastSpawn(touch.position);
                 SetWorldPoints(); 
-                SetScreenPoints(true);
             }
         }
 
         // FRAME SECTION
-        SetScreenPoints(false);
+        SetScreenPoints();
     }
 
     static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
