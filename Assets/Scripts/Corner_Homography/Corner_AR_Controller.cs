@@ -9,7 +9,7 @@ using UnityEngine.XR.ARSubsystems;
 using OpenCVForUnity.CoreModule;
 
 [RequireComponent(typeof(ARRaycastManager))]
-public class Plane_AR_Controller : MonoBehaviour
+public class Corner_AR_Controller : MonoBehaviour
 {
     [SerializeField]
     ARCameraManager m_ARCameraManager;
@@ -63,38 +63,11 @@ public class Plane_AR_Controller : MonoBehaviour
         m_ARRaycastManager = GetComponent<ARRaycastManager>();
         m_SessionOrigin = GetComponent<ARSessionOrigin>();
         m_cv = CV_Controller_Object.GetComponent<CV_Controller>();
-        spawnedObjects[0] = Instantiate(m_PlacedPrefab, new Vector3(0.0f, 0.0f, 0.0f), new Vector3(0.0f, 0.0f, 0.0f));
-        spawnedObjects[1] = Instantiate(m_PlacedPrefab, new Vector3(0.0f, 0.0f, 0.0f), new Vector3(0.0f, 0.0f, 0.0f));
-        spawnedObjects[2] = Instantiate(m_PlacedPrefab, new Vector3(0.0f, 0.0f, 0.0f), new Vector3(0.0f, 0.0f, 0.0f));
-        spawnedObjects[3] = Instantiate(m_PlacedPrefab, new Vector3(0.0f, 0.0f, 0.0f), new Vector3(0.0f, 0.0f, 0.0f));
+        spawnedObjects[0] = Instantiate(m_PlacedPrefab, new Vector3(0.0f, 0.0f, 0.0f), new Quaternion(0.0f, 0.0f, 0.0f, 0.0f));
+        spawnedObjects[1] = Instantiate(m_PlacedPrefab, new Vector3(0.0f, 0.0f, 0.0f), new Quaternion(0.0f, 0.0f, 0.0f, 0.0f));
+        spawnedObjects[2] = Instantiate(m_PlacedPrefab, new Vector3(0.0f, 0.0f, 0.0f), new Quaternion(0.0f, 0.0f, 0.0f, 0.0f));
+        spawnedObjects[3] = Instantiate(m_PlacedPrefab, new Vector3(0.0f, 0.0f, 0.0f), new Quaternion(0.0f, 0.0f, 0.0f, 0.0f));
     }
-
-    // void MarkerSpawn()
-    // {
-    //     Vector2 ray_pos = m_cv.GetPos();
-
-    //     bool arRayBool = m_ARRaycastManager.Raycast(ray_pos, s_Hits, TrackableType.PlaneWithinPolygon);
-    //     bool edgeRayBool = m_ARRaycastManager.Raycast(ray_pos + (new Vector2(m_cv.GetRad(), 0)), e_Hits, TrackableType.PlaneWithinPolygon);
-
-    //     if (arRayBool)
-    //     {
-    //         var hit = s_Hits[0];
-    //         face = hit;
-    //         var edge = e_Hits[0];
-    //         float dist = Vector3.Distance(hit.pose.position, edge.pose.position);
-
-    //         if (spawnedObject == null)
-    //         {
-    //             spawnedObject = Instantiate(m_PlacedPrefab, hit.pose.position, hit.pose.rotation);
-    //             spawnedObject.transform.localScale = (new Vector3(dist, dist, dist))*10;
-    //         }
-    //         else
-    //         {
-    //             spawnedObject.transform.position = hit.pose.position;
-    //             spawnedObject.transform.localScale = (new Vector3(dist, dist, dist))*10;
-    //         }
-    //     }
-    // }
 
     float ScreenToCameraX(double x)
     {

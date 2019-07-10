@@ -22,7 +22,7 @@ using OpenCVForUnity.Xfeatures2dModule;
 /// If a raycast hits a trackable, the <see cref="placedPrefab"/> is instantiated
 /// and moved to the hit position.
 /// </summary>
-public class Plane_CV_Controller : MonoBehaviour
+public class Corner_CV_Controller : MonoBehaviour
 {
     public static double THRESH_VAL = 150.0;
     public static int K_ITERATIONS = 10;
