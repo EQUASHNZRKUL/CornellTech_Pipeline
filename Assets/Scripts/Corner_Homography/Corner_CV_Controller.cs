@@ -212,7 +212,7 @@ public class Corner_CV_Controller : MonoBehaviour
 
     void HomographyTransform(IntPtr greyscale) 
     {
-        Plane_AR_Controller Homo_Controller = m_ARSessionManager.GetComponent<Plane_AR_Controller>();
+        Corner_AR_Controller Homo_Controller = m_ARSessionManager.GetComponent<Corner_AR_Controller>();
         Point[] c2_scrpoints = Homo_Controller.GetScreenpoints(false);
 
         MatOfPoint2f initPoints = new MatOfPoint2f(regPointArray);

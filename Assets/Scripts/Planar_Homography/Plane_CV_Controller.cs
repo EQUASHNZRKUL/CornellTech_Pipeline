@@ -13,7 +13,6 @@ using OpenCVForUnity.UnityUtils;
 using OpenCVForUnity.ImgprocModule;
 using OpenCVForUnity.Features2dModule;
 using OpenCVForUnity.Calib3dModule;
-using OpenCVForUnity.Xfeatures2dModule;
 
 /// <summary>
 /// Listens for touch events and performs an AR raycast from the screen touch point.
@@ -34,12 +33,14 @@ public class Plane_CV_Controller : MonoBehaviour
     public Mat outMat = new Mat(480, 640, CvType.CV_8UC1);
 
     private Mat cached_initMat = new Mat (480, 640, CvType.CV_8UC1);
-    private Mat cached_homoMat = new Mat (480, 640, CvType.CV_8UC1);
 
-    private MatOfKeyPoint keyMat = new MatOfKeyPoint();
-    private Point[] srcPointArray = new Point[4];
-    private Point[] regPointArray = new Point[4];
-    private Point[] dstPointArray = new Point[4];
+    private float blob_x;
+    private float blob_y;
+    private float blob_r;
+
+    private float ray_x;
+    private float ray_y;
+    private float ray_r;
 
     private ScreenOrientation? m_CachedOrientation = null;
     private Texture2D m_Texture;
@@ -97,134 +98,21 @@ public class Plane_CV_Controller : MonoBehaviour
             m_ARCameraManager.frameReceived -= OnCameraFrameReceived;
     }
 
-    public Point[] GetC1Points()
+    void ComputerVisionAlgo(IntPtr greyscale) 
     {
-        return srcPointArray;
-    }
+        // Utils.copyToMat(greyscale, imageMat);
+        inMat = cached_initMat;
 
-    void CornerDetection() {
-        // Creating Detector
-        int octaves = 6;
-        float corner_thresh = 0.015f;
-        float dog_thresh = 0.015f;
-        int max_detections = 5;
-        HarrisLaplaceFeatureDetector detector = HarrisLaplaceFeatureDetector.create(
-            octaves, corner_thresh, dog_thresh, max_detections);
-
-        // Finding corners
-        // imageMat = cached_initMat;
-        Core.flip(cached_initMat, imageMat, 0);
-        keyMat = new MatOfKeyPoint();
-        detector.detect(imageMat, keyMat);
-
-        // Draw corners
-        Features2d.drawKeypoints(imageMat, keyMat, outMat);
-    }
-
-    void SortPoints() {
-        Point storeGreaterY(Point fst, Point snd) {
-            if (fst.y > snd.y)
-                return fst; 
-            return snd; 
-        }
-
-        // Find top points
-        Point one = new Point(0.0, 0.0);
-        Point two = new Point(0.0, 0.0);
-        int i_1 = 0;
-        int i_2 = 0;
-        for (int i = 0; i < 4; i++) {
-            one = storeGreaterY(one, srcPointArray[i]);
-            i_1 = i; 
-        }
-        for (int i = 0; i < 4; i++) {
-            if (srcPointArray[i] != one) {
-                two = storeGreaterY(two, srcPointArray[i]);
-                i_2 = i;
-            }
-        }
-        if (one.x > two.x) { // Swap if necessary
-            Point tmp = one; 
-            one = two; 
-            two = tmp; 
-        }
-
-        // Find low points
-        Point three = new Point(0.0, 0.0);
-        Point four = new Point(0.0, 0.0);
-        for (int i = 0; i < 4; i++) {
-            if ((srcPointArray[i] != one) && (srcPointArray[i] != two)) {
-                if (three == four) { // TODO; replace with == new point(0.0, 0.0)
-                    three = srcPointArray[i];
-                }
-                else {
-                    four = srcPointArray[i];
-                }
-            }
-        }
-        if (three.x > four.x) { // Swap if necessary
-            Point tmp = three; 
-            three = four; 
-            four = tmp; 
-        }
-
-        // storing sorted values
-        srcPointArray[0] = one;
-        srcPointArray[1] = two; 
-        srcPointArray[2] = three; 
-        srcPointArray[3] = four; 
-    }
-
-    void BlobDetection() {
-        SimpleBlobDetector detector = SimpleBlobDetector.create();
-        // inMat = imageMat; 
-
-        Core.flip(cached_initMat, imageMat, 0);
-
-        keyMat = new MatOfKeyPoint();
-        detector.detect(imageMat, keyMat);
-
-        // Features2d.drawKeypoints(imageMat, keyMat, outMat);
-
-        if (keyMat.rows() < 4) 
-            return; 
-
-        for (int i = 0; i < 4; i++)
-        {
-            srcPointArray[i] = new Point(keyMat.get(i, 0)[0], keyMat.get(i, 0)[1]);
-        }
-        
-        SortPoints();
-
-        regPointArray[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
-        regPointArray[1] = new Point(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT);
-        regPointArray[2] = new Point(0.0, 0.0);
-        regPointArray[3] = new Point(HOMOGRAPHY_WIDTH, 0.0);
-
-        MatOfPoint2f srcPoints = new MatOfPoint2f(srcPointArray);
-        MatOfPoint2f regPoints = new MatOfPoint2f(regPointArray);
-
-        // Creating the H Matrix
-        Mat Homo_Mat = Calib3d.findHomography(srcPoints, regPoints);
-
-        Imgproc.warpPerspective(imageMat, cached_homoMat, Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
-    }
-
-    void HomographyTransform(IntPtr greyscale) 
-    {
         Plane_AR_Controller Homo_Controller = m_ARSessionManager.GetComponent<Plane_AR_Controller>();
+        Point[] c1_scrpoints = Homo_Controller.GetScreenpoints(true);
         Point[] c2_scrpoints = Homo_Controller.GetScreenpoints(false);
 
-        MatOfPoint2f initPoints = new MatOfPoint2f(regPointArray);
+        MatOfPoint2f initPoints = new MatOfPoint2f(c1_scrpoints);
         MatOfPoint2f currPoints = new MatOfPoint2f(c2_scrpoints);
-
-        print(c2_scrpoints[0]);
 
         Mat H = Calib3d.findHomography(initPoints, currPoints);
 
-        Imgproc.warpPerspective(cached_homoMat, outMat, H, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
-        Core.flip(outMat, outMat, 0);
-        // Imgproc.warpPerspective(cached_homoMat, outMat, H, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
+        Imgproc.warpPerspective(inMat, outMat, H, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
     }
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
@@ -273,6 +161,14 @@ public class Plane_CV_Controller : MonoBehaviour
 
         image.Dispose();
 
+        // Sets orientation of screen if necessary
+        if (m_CachedOrientation == null || m_CachedOrientation != Screen.orientation)
+        {
+            // TODO: Debug why doesn't initiate with ConfigRawimage(). The null isn't triggering here. Print cached Orientation
+            m_CachedOrientation = Screen.orientation;
+            ConfigureRawImageInSpace(img_dim);
+        }
+
         // Process the image here: 
         unsafe {
             IntPtr greyPtr = (IntPtr) greyscale.data.GetUnsafePtr();
@@ -285,33 +181,16 @@ public class Plane_CV_Controller : MonoBehaviour
                 {
                     // Cache original image
                     Utils.copyToMat(greyPtr, cached_initMat);
-
-                    // Detect reference points
-                    BlobDetection();
-                    Debug.Log(keyMat.size());
-                
                 }
             }
 
-            // Try ignoring Homography code and displaying detected corners
-            // HomographyTransform(greyPtr);
-            outMat = cached_homoMat;
+            ComputerVisionAlgo(greyPtr);
 
             // Displays OpenCV Mat as a Texture
-            Utils.matToTexture2D(outMat, m_Texture, false, 0);
-        }
-
-        // Sets orientation of screen if necessary
-        if (m_CachedOrientation == null || m_CachedOrientation != Screen.orientation)
-        {
-            // TODO: Debug why doesn't initiate with ConfigRawimage(). The null isn't triggering here. Print cached Orientation
-            m_CachedOrientation = Screen.orientation;
-            ConfigureRawImageInSpace(img_dim);
+            Utils.matToTexture2D(outMat, m_Texture, true, 0);
         }
 
         m_RawImage.texture = (Texture) m_Texture;
-
-        m_ImageInfo.text = string.Format("Number of Blobs: {0}", keyMat.rows());
     }
 
     static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();

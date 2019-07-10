@@ -42,7 +42,7 @@ public class Corner_AR_Controller : MonoBehaviour
     public static float DATA_SCALE = 0.05f;
     private TrackableId cached_trackableid;
 
-    public Vector3[] world_points = new Vector3[4];
+    private Vector3[] world_points = new Vector3[4];
 
     private Point[] c1_scr_points = new Point[4];
     private Point[] c2_scr_points = new Point[4];
@@ -91,7 +91,7 @@ public class Corner_AR_Controller : MonoBehaviour
 
     void SetWorldPoints()
     {
-        Plane_CV_Controller CV_Controller = GameObject.Find("CV_Controller").GetComponent<Plane_CV_Controller>();
+        Corner_CV_Controller CV_Controller = GameObject.Find("CV_Controller").GetComponent<Corner_CV_Controller>();
         Point[] c1_points = CV_Controller.GetC1Points();
 
         // for (int i = 0; i < c1_points.Length; i++)
