@@ -246,6 +246,7 @@ public class Plane_CV_Controller : MonoBehaviour
         Mat H = Calib3d.findHomography(initPoints, currPoints);
 
         Imgproc.warpPerspective(cached_homoMat, outMat, H, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
+        Core.flip(outMat, outMat, 0);
         // Imgproc.warpPerspective(cached_homoMat, outMat, H, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
     }
 

@@ -100,6 +100,16 @@ public class Plane_AR_Controller : MonoBehaviour
         return (float) ((320.0/1080.0)*(1080.0 - y) + 80.0);
     }
 
+    float CameraToScreenX(double x)
+    {
+        return (float) ((2200.0/640.0) * x);
+    }
+
+    float CameraToScreenY(double y)
+    {
+        return (float) (1080.0 - (3.375*(y - 80.0)));
+    }
+
     void SetWorldPoints()
     {
         Plane_CV_Controller CV_Controller = GameObject.Find("CV_Controller").GetComponent<Plane_CV_Controller>();
@@ -109,9 +119,10 @@ public class Plane_AR_Controller : MonoBehaviour
         for (int i = 0; i < 4; i++)
         {
             Point screen_point = c1_points[i];
-            Vector2 screen_vec = new Vector2((float) screen_point.x, (float) screen_point.y);
+            Vector2 screen_vec = new Vector2(CameraToScreenX(screen_point.x), CameraToScreenY(screen_point.y));
             bool arRayBool = m_ARRaycastManager.Raycast(screen_vec, s_Hits, TrackableType.PlaneWithinPolygon);
             world_points[i] = s_Hits[0].pose.position; 
+            spawnedObject = Instantiate(m_PlacedPrefab, s_Hits[0].pose.position, s_Hits[0].pose.rotation);
         }
     }
 
