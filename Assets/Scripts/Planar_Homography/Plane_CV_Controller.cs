@@ -97,24 +97,29 @@ public class Plane_CV_Controller : MonoBehaviour
             m_ARCameraManager.frameReceived -= OnCameraFrameReceived;
     }
 
-    Point[] getCornerPoints()
+    public Point[] GetC1Points()
     {
-        if (keyMat.size().width < 4)
-            return new Point[0]; 
-
-        double[] point1 = keyMat.get(0,0);
-        double[] point2 = keyMat.get(1,0);
-        double[] point3 = keyMat.get(2,0);
-        double[] point4 = keyMat.get(3,0);
-
-        Point[] ret = new Point[4];
-        ret[0] = new Point(point1[0], point1[1]);
-        ret[1] = new Point(point2[0], point2[1]);
-        ret[2] = new Point(point3[0], point3[1]);
-        ret[3] = new Point(point4[0], point4[1]);
-
-        return ret;
+        return srcPointArray;
     }
+
+    // private Point[] getCornerPoints()
+    // {
+    //     if (keyMat.size().width < 4)
+    //         return new Point[0]; 
+
+    //     double[] point1 = keyMat.get(0,0);
+    //     double[] point2 = keyMat.get(1,0);
+    //     double[] point3 = keyMat.get(2,0);
+    //     double[] point4 = keyMat.get(3,0);
+
+    //     Point[] ret = new Point[4];
+    //     ret[0] = new Point(point1[0], point1[1]);
+    //     ret[1] = new Point(point2[0], point2[1]);
+    //     ret[2] = new Point(point3[0], point3[1]);
+    //     ret[3] = new Point(point4[0], point4[1]);
+
+    //     return ret;
+    // }
 
     void CornerDetection() {
         // Creating Detector
@@ -233,6 +238,10 @@ public class Plane_CV_Controller : MonoBehaviour
         MatOfPoint2f initPoints = new MatOfPoint2f(regPointArray);
         // MatOfPoint2f initPoints = new MatOfPoint2f(c1_scrpoints);
         MatOfPoint2f currPoints = new MatOfPoint2f(c2_scrpoints);
+
+        print(c2_scrpoints[0]);
+
+        // ISSUE IS INITPOINTS, CURRPOINTS. 
 
         Mat H = Calib3d.findHomography(initPoints, currPoints);
 
