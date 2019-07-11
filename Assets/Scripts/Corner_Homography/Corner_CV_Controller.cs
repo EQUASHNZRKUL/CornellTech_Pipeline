@@ -30,7 +30,6 @@ public class Corner_CV_Controller : MonoBehaviour
     public static double HOMOGRAPHY_HEIGHT = 480.0;
 
     public Mat imageMat = new Mat(480, 640, CvType.CV_8UC1);
-    private Mat inMat = new Mat(480, 640, CvType.CV_8UC1); 
     public Mat outMat = new Mat(480, 640, CvType.CV_8UC1);
 
     private Mat cached_initMat = new Mat (480, 640, CvType.CV_8UC1);
@@ -189,10 +188,8 @@ public class Corner_CV_Controller : MonoBehaviour
     // Detects Blobs with Detector Framework and stores Top-down view into cached_homoMat
     void BlobDetection() {
         SimpleBlobDetector detector = SimpleBlobDetector.create();
-        // inMat = imageMat; 
 
         Core.flip(cached_initMat, imageMat, 0);
-        
 
         keyMat = new MatOfKeyPoint();
         detector.detect(cached_initMat, keyMat);
@@ -207,7 +204,7 @@ public class Corner_CV_Controller : MonoBehaviour
             srcPointArray[i] = new Point(keyMat.get(i, 0)[0], keyMat.get(i, 0)[1]);
         }
         
-        SortPoints();
+        // SortPoints();
 
         regPointArray[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
         regPointArray[1] = new Point(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT);
@@ -231,8 +228,6 @@ public class Corner_CV_Controller : MonoBehaviour
 
         MatOfPoint2f initPoints = new MatOfPoint2f(regPointArray);
         MatOfPoint2f currPoints = new MatOfPoint2f(c2_scrpoints);
-
-        // print(c2_scrpoints[0]);
 
         Mat H = Calib3d.findHomography(initPoints, currPoints);
 
@@ -263,23 +258,9 @@ public class Corner_CV_Controller : MonoBehaviour
         m_RawImage.transform.localScale = new Vector3(scale/4, scale/4, 0.0f);
         // m_RawImage.transform.position = new Vector3(scr_w/2, scr_h/2, 0.0f);
         // m_RawImage.transform.localScale = new Vector3(scale, scale, 0.0f);
-    }
-
-    void ConfigureTopImageInSpace(Vector2 img_dim)
-    {
-        Vector2 ScreenDimension = new Vector2(Screen.width, Screen.height);
-        int scr_w = Screen.width;
-        int scr_h = Screen.height;
-
-        float img_w = img_dim.x;
-        float img_h = img_dim.y;
-
-        float w_ratio = (float)scr_w/img_w; 
-        float h_ratio = (float)scr_h/img_h; 
-        float scale = Math.Max(w_ratio, h_ratio);
 
         m_TopImage.SetNativeSize();
-        m_TopImage.transform.position = new Vector3(3*scr_w/4, 3*scr_h/4, 0.0f);
+        m_TopImage.transform.position = new Vector3(3*scr_w/4, scr_h/4, 0.0f);
         m_TopImage.transform.localScale = new Vector3(scale/4, scale/4, 0.0f);
     }
 
@@ -309,7 +290,7 @@ public class Corner_CV_Controller : MonoBehaviour
         unsafe {
             IntPtr greyPtr = (IntPtr) greyscale.data.GetUnsafePtr();
 
-            // TOUCH: Cache image on touch
+            // TOUCH: Detect corners and set as source points
             if (Input.touchCount > 0)
             {
                 Touch touch = Input.GetTouch(0);
@@ -321,11 +302,15 @@ public class Corner_CV_Controller : MonoBehaviour
                     // Detect reference points
                     BlobDetection();
                     Debug.Log(keyMat.size());
-                
+
+                    // Display cached top-down
+                    Texture2D topTexture = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
+                    Utils.matToTexture2D(cached_homoMat, topTexture, true, 0);
+                    m_TopImage.texture = (Texture) topTexture;
                 }
             }
-
-            // Try ignoring Homography code and displaying detected corners
+            
+            // Warps cached top-down and gets outMat. 
             HomographyTransform(greyPtr);
             // outMat = cached_homoMat;
 
