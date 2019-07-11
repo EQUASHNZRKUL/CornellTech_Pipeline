@@ -61,6 +61,14 @@ public class Corner_CV_Controller : MonoBehaviour
     }
 
     [SerializeField]
+    RawImage m_TopImage; 
+    public RawImage topImage
+    {
+        get { return m_TopImage; }
+        set { m_TopImage = value; }
+    }
+
+    [SerializeField]
     Text m_ImageInfo;
     public Text imageInfo
     {
@@ -97,11 +105,13 @@ public class Corner_CV_Controller : MonoBehaviour
             m_ARCameraManager.frameReceived -= OnCameraFrameReceived;
     }
 
+    // Returns scrPointArray for public access
     public Point[] GetC1Points()
     {
         return srcPointArray;
     }
 
+    // Detects Corners with Detector Framework and Draws Keypoints to outMat
     void CornerDetection() {
         // Creating Detector
         int octaves = 6;
@@ -121,6 +131,7 @@ public class Corner_CV_Controller : MonoBehaviour
         Features2d.drawKeypoints(imageMat, keyMat, outMat);
     }
 
+    // Sorts Points to match standardized Z formation
     void SortPoints() {
         Point storeGreaterY(Point fst, Point snd) {
             if (fst.y > snd.y)
@@ -175,14 +186,16 @@ public class Corner_CV_Controller : MonoBehaviour
         srcPointArray[3] = four; 
     }
 
+    // Detects Blobs with Detector Framework and stores Top-down view into cached_homoMat
     void BlobDetection() {
         SimpleBlobDetector detector = SimpleBlobDetector.create();
         // inMat = imageMat; 
 
         Core.flip(cached_initMat, imageMat, 0);
+        
 
         keyMat = new MatOfKeyPoint();
-        detector.detect(imageMat, keyMat);
+        detector.detect(cached_initMat, keyMat);
 
         // Features2d.drawKeypoints(imageMat, keyMat, outMat);
 
@@ -210,6 +223,7 @@ public class Corner_CV_Controller : MonoBehaviour
         Imgproc.warpPerspective(imageMat, cached_homoMat, Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
     }
 
+    // Warps cached_homoMat to outMat
     void HomographyTransform(IntPtr greyscale) 
     {
         Corner_AR_Controller Homo_Controller = m_ARSessionManager.GetComponent<Corner_AR_Controller>();
@@ -218,7 +232,7 @@ public class Corner_CV_Controller : MonoBehaviour
         MatOfPoint2f initPoints = new MatOfPoint2f(regPointArray);
         MatOfPoint2f currPoints = new MatOfPoint2f(c2_scrpoints);
 
-        print(c2_scrpoints[0]);
+        // print(c2_scrpoints[0]);
 
         Mat H = Calib3d.findHomography(initPoints, currPoints);
 
@@ -249,6 +263,24 @@ public class Corner_CV_Controller : MonoBehaviour
         m_RawImage.transform.localScale = new Vector3(scale/4, scale/4, 0.0f);
         // m_RawImage.transform.position = new Vector3(scr_w/2, scr_h/2, 0.0f);
         // m_RawImage.transform.localScale = new Vector3(scale, scale, 0.0f);
+    }
+
+    void ConfigureTopImageInSpace(Vector2 img_dim)
+    {
+        Vector2 ScreenDimension = new Vector2(Screen.width, Screen.height);
+        int scr_w = Screen.width;
+        int scr_h = Screen.height;
+
+        float img_w = img_dim.x;
+        float img_h = img_dim.y;
+
+        float w_ratio = (float)scr_w/img_w; 
+        float h_ratio = (float)scr_h/img_h; 
+        float scale = Math.Max(w_ratio, h_ratio);
+
+        m_TopImage.SetNativeSize();
+        m_TopImage.transform.position = new Vector3(3*scr_w/4, 3*scr_h/4, 0.0f);
+        m_TopImage.transform.localScale = new Vector3(scale/4, scale/4, 0.0f);
     }
 
     void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
@@ -294,8 +326,8 @@ public class Corner_CV_Controller : MonoBehaviour
             }
 
             // Try ignoring Homography code and displaying detected corners
-            // HomographyTransform(greyPtr);
-            outMat = cached_homoMat;
+            HomographyTransform(greyPtr);
+            // outMat = cached_homoMat;
 
             // Displays OpenCV Mat as a Texture
             Utils.matToTexture2D(outMat, m_Texture, false, 0);
