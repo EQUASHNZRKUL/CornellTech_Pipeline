@@ -190,9 +190,10 @@ public class Corner_CV_Controller : MonoBehaviour
         SimpleBlobDetector detector = SimpleBlobDetector.create();
 
         Core.flip(cached_initMat, imageMat, 0);
+        // cached_initMat = imageMat;
 
         keyMat = new MatOfKeyPoint();
-        detector.detect(cached_initMat, keyMat);
+        detector.detect(imageMat, keyMat);
 
         // Features2d.drawKeypoints(imageMat, keyMat, outMat);
 
@@ -204,7 +205,7 @@ public class Corner_CV_Controller : MonoBehaviour
             srcPointArray[i] = new Point(keyMat.get(i, 0)[0], keyMat.get(i, 0)[1]);
         }
         
-        // SortPoints();
+        SortPoints();
 
         regPointArray[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
         regPointArray[1] = new Point(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT);

@@ -69,24 +69,26 @@ public class Corner_AR_Controller : MonoBehaviour
         spawnedObjects[3] = Instantiate(m_PlacedPrefab, new Vector3(0.0f, 0.0f, 0.0f), new Quaternion(0.0f, 0.0f, 0.0f, 0.0f));
     }
 
-    float ScreenToCameraX(double x)
+    float PixelToCameraX(double x)
     {
         return (float) ((640.0/2200.0) * x);
     }
 
-    float ScreenToCameraY(double y)
+    float PixelToCameraY(double y)
     {
         return (float) ((320.0/1080.0)*(1080.0 - y) + 80.0);
     }
 
-    float CameraToScreenX(double x)
+    float CameraToPixelX(double x)
     {
-        return (float) ((2200.0/640.0) * x);
+        // return (float) ((2200.0/640.0) * x);
+        return (float) (3.4375 * x);
     }
 
-    float CameraToScreenY(double y)
+    float CameraToPixelY(double y)
     {
         return (float) (1080.0 - (3.375*(y - 80.0)));
+        // return (float) (1080.0 - (1080.0/320.0)*(y-80.0));
     }
 
     void SetWorldPoints()
@@ -98,7 +100,7 @@ public class Corner_AR_Controller : MonoBehaviour
         for (int i = 0; i < 4; i++)
         {
             Point screen_point = c1_points[i];
-            Vector2 screen_vec = new Vector2(CameraToScreenX(screen_point.x), CameraToScreenY(screen_point.y));
+            Vector2 screen_vec = new Vector2(CameraToPixelX(screen_point.x), CameraToPixelY(screen_point.y));
             bool arRayBool = m_ARRaycastManager.Raycast(screen_vec, s_Hits, TrackableType.PlaneWithinPolygon);
             world_points[i] = s_Hits[0].pose.position; 
             spawnedObjects[i].transform.position = world_points[i];
@@ -113,7 +115,7 @@ public class Corner_AR_Controller : MonoBehaviour
         for (int i = 0; i < 4; i++)
         {
             Vector3 scr_point = cam.WorldToScreenPoint(world_points[i]);
-            c2_scr_points[i] = new Point(ScreenToCameraX(scr_point.x), ScreenToCameraY(scr_point.y));
+            c2_scr_points[i] = new Point(PixelToCameraX(scr_point.x), PixelToCameraY(scr_point.y));
         }
     }
 
