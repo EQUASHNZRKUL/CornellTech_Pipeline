@@ -98,15 +98,16 @@ public class Corner_AR_Controller : MonoBehaviour
         // for (int i = 0; i < c1_points.Length; i++)
         for (int i = 0; i < 4; i++)
         {
-            Point screen_point = c1_points[i];
-            Vector2 screen_vec = new Vector2(CameraToPixelX(screen_point.x), (float) (screen_point.y));
+            // Point mat_point = c1_points[i];
+            Vector2 screen_vec = new Vector2(CameraToPixelX(c1_points[i].x), CameraToPixelY(c1_points[i].y));
             bool arRayBool = m_ARRaycastManager.Raycast(screen_vec, s_Hits, TrackableType.PlaneWithinPolygon);
             world_points[i] = s_Hits[0].pose.position; 
-            spawnedObjects[i].transform.position = world_points[i];
+            // spawnedObjects[i].transform.position = world_points[i];
+            spawnedObjects[i] = Instantiate(m_PlacedPrefab, s_Hits[0].pose.position, s_Hits[0].pose.rotation);
         }
 
         Debug.LogFormat("BLOB: Mat Points (detected): \n {0} \n {1} \n {2} \n {3}", 
-            c1_points[0], c1_points[1], c1_points[2], c1_points[2]);
+            c1_points[0], c1_points[1], c1_points[2], c1_points[3]);
 
         Debug.LogFormat("BLOB: Screen Points (raycast): \n {0} \n {1} \n {2} \n {3}", 
             new Vector2(CameraToPixelX(c1_points[0].x), CameraToPixelY(c1_points[0].y)), 
@@ -114,8 +115,15 @@ public class Corner_AR_Controller : MonoBehaviour
             new Vector2(CameraToPixelX(c1_points[2].x), CameraToPixelY(c1_points[2].y)),
             new Vector2(CameraToPixelX(c1_points[3].x), CameraToPixelY(c1_points[3].y)));
 
-        Debug.LogFormat("BLOB: World Points: {0} \n {1} \n {2} \n {3}", 
+        Debug.LogFormat("BLOB: World Points: \n {0} \n {1} \n {2} \n {3}", 
             world_points[0], world_points[1], world_points[2], world_points[3]);
+
+        Camera cam = GameObject.Find("AR Camera").GetComponent<Camera>();
+        Debug.LogFormat("BLOB: Projected Screen: \n {0} \n {1} \n {2} \n {3}", 
+            cam.WorldToScreenPoint(world_points[0]), 
+            cam.WorldToScreenPoint(world_points[1]), 
+            cam.WorldToScreenPoint(world_points[2]),
+            cam.WorldToScreenPoint(world_points[3]));
     }
 
     // Sets the C2 screen point values from world points
@@ -130,21 +138,6 @@ public class Corner_AR_Controller : MonoBehaviour
         }
     }
 
-    void PrintMatPoints()
-    {
-
-    }
-
-    void PrintScreenPoints()
-    {
-
-    }
-
-    void PrintWorldPoints()
-    {
-
-    }
-
     void Update()
     {
         // TOUCH SECTION
@@ -153,9 +146,17 @@ public class Corner_AR_Controller : MonoBehaviour
             Touch touch = Input.GetTouch(0);
             if (touch.phase == TouchPhase.Began)
             {
+                for (int i = 0; i < 4; i++)
+                {
+                    Destroy(spawnedObjects[i]);
+                }
+
                 // Cache worldpoints 
                 SetWorldPoints(); 
-                
+                Debug.LogFormat("TOUCH: Screen points: \n {0}", touch.position);
+                bool arRayBool = m_ARRaycastManager.Raycast(touch.position, e_Hits, TrackableType.PlaneWithinPolygon);
+                Debug.LogFormat("TOUCH: World: \n {0}", e_Hits[0].pose.position);
+                // Debug.LogFormat("")
             }
         }
 
