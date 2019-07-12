@@ -81,7 +81,6 @@ public class Corner_AR_Controller : MonoBehaviour
 
     float CameraToPixelX(double x)
     {
-        // return (float) ((2200.0/640.0) * x);
         return (float) (3.4375 * x);
     }
 
@@ -100,11 +99,23 @@ public class Corner_AR_Controller : MonoBehaviour
         for (int i = 0; i < 4; i++)
         {
             Point screen_point = c1_points[i];
-            Vector2 screen_vec = new Vector2(CameraToPixelX(screen_point.x), CameraToPixelY(screen_point.y));
+            Vector2 screen_vec = new Vector2(CameraToPixelX(screen_point.x), (float) (screen_point.y));
             bool arRayBool = m_ARRaycastManager.Raycast(screen_vec, s_Hits, TrackableType.PlaneWithinPolygon);
             world_points[i] = s_Hits[0].pose.position; 
             spawnedObjects[i].transform.position = world_points[i];
         }
+
+        Debug.LogFormat("BLOB: Mat Points (detected): \n {0} \n {1} \n {2} \n {3}", 
+            c1_points[0], c1_points[1], c1_points[2], c1_points[2]);
+
+        Debug.LogFormat("BLOB: Screen Points (raycast): \n {0} \n {1} \n {2} \n {3}", 
+            new Vector2(CameraToPixelX(c1_points[0].x), CameraToPixelY(c1_points[0].y)), 
+            new Vector2(CameraToPixelX(c1_points[1].x), CameraToPixelY(c1_points[1].y)),
+            new Vector2(CameraToPixelX(c1_points[2].x), CameraToPixelY(c1_points[2].y)),
+            new Vector2(CameraToPixelX(c1_points[3].x), CameraToPixelY(c1_points[3].y)));
+
+        Debug.LogFormat("BLOB: World Points: {0} \n {1} \n {2} \n {3}", 
+            world_points[0], world_points[1], world_points[2], world_points[3]);
     }
 
     // Sets the C2 screen point values from world points
@@ -119,6 +130,21 @@ public class Corner_AR_Controller : MonoBehaviour
         }
     }
 
+    void PrintMatPoints()
+    {
+
+    }
+
+    void PrintScreenPoints()
+    {
+
+    }
+
+    void PrintWorldPoints()
+    {
+
+    }
+
     void Update()
     {
         // TOUCH SECTION
@@ -129,6 +155,7 @@ public class Corner_AR_Controller : MonoBehaviour
             {
                 // Cache worldpoints 
                 SetWorldPoints(); 
+                
             }
         }
 

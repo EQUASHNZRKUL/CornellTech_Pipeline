@@ -306,7 +306,7 @@ public class Corner_CV_Controller : MonoBehaviour
 
                     // Display cached top-down
                     Texture2D topTexture = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
-                    Utils.matToTexture2D(cached_homoMat, topTexture, true, 0);
+                    Utils.matToTexture2D(cached_homoMat, topTexture, false, 0);
                     m_TopImage.texture = (Texture) topTexture;
                 }
             }
