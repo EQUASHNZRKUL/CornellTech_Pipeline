@@ -107,6 +107,7 @@ public class Corner_CV_Controller : MonoBehaviour
     // Returns scrPointArray for public access
     public Point[] GetC1Points()
     {
+        Debug.LogFormat("CV: {0}", srcPointArray[0]);
         return srcPointArray;
     }
 
