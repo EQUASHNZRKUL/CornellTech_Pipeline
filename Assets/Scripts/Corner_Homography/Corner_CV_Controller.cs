@@ -82,6 +82,38 @@ public class Corner_CV_Controller : MonoBehaviour
         get { return m_ARSessionManager; }
         set { m_ARSessionManager = value; }
     }
+        
+    [SerializeField]
+    RawImage m_Sprite1;
+    public RawImage PositionSprite1 
+    {
+        get { return m_Sprite1; }
+        set { m_Sprite1 = value; } 
+    } 
+
+     [SerializeField]
+    RawImage m_Sprite2;
+    public RawImage PositionSprite2
+    {
+        get { return m_Sprite2; }
+        set { m_Sprite2 = value; } 
+    } 
+
+    [SerializeField]
+    RawImage m_Sprite3;
+    public RawImage PositionSprite3
+    {
+        get { return m_Sprite3; }
+        set { m_Sprite3 = value; } 
+    } 
+
+    [SerializeField]
+    RawImage m_Sprite4;
+    public RawImage PositionSprite4 
+    {
+        get { return m_Sprite4; }
+        set { m_Sprite4 = value; } 
+    } 
 
     void Awake()
     {
@@ -102,6 +134,17 @@ public class Corner_CV_Controller : MonoBehaviour
     {
         if (m_ARCameraManager != null)
             m_ARCameraManager.frameReceived -= OnCameraFrameReceived;
+    }
+
+    float CameraToPixelX(double x)
+    {
+        return (float) (3.4375 * x);
+    }
+
+    float CameraToPixelY(double y)
+    {
+        return (float) (1080.0 - (3.375*(y - 80.0)));
+        // return (float) (1080.0 - (1080.0/320.0)*(y-80.0));
     }
 
     // Returns scrPointArray for public access
@@ -265,6 +308,32 @@ public class Corner_CV_Controller : MonoBehaviour
         m_TopImage.transform.localScale = new Vector3(scale/4, scale/4, 0.0f);
     }
 
+    void trackScreenPoints() 
+    {
+        // DEBUG: Displays the detected screen points with sprites
+
+        // m_Sprite1.SetNativeSize();
+        // m_Sprite2.SetNativeSize();
+        // m_Sprite3.SetNativeSize();
+        // m_Sprite4.SetNativeSize();
+
+        m_Sprite1.transform.position = new Vector3(CameraToPixelX(srcPointArray[0].x), 
+                                                   CameraToPixelY(srcPointArray[0].y), 0.0f);
+        m_Sprite2.transform.position = new Vector3(CameraToPixelX(srcPointArray[1].x), 
+                                                   CameraToPixelY(srcPointArray[1].y), 0.0f);
+        m_Sprite3.transform.position = new Vector3(CameraToPixelX(srcPointArray[2].x), 
+                                                   CameraToPixelY(srcPointArray[2].y), 0.0f);
+        m_Sprite4.transform.position = new Vector3(CameraToPixelX(srcPointArray[3].x), 
+                                                   CameraToPixelY(srcPointArray[3].y), 0.0f);
+        
+        // Debug.Log(m_Sprite1.transform.position);
+        // Debug.Log(m_Sprite2.transform.position);
+        // Debug.Log(m_Sprite3.transform.position);
+        // Debug.Log(m_Sprite4.transform.position);
+
+
+    }
+
     void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
     {
         // Camera data extraction
@@ -302,12 +371,21 @@ public class Corner_CV_Controller : MonoBehaviour
 
                     // Detect reference points
                     BlobDetection();
-                    Debug.Log(keyMat.size());
+                    // Debug.Log(keyMat.size());
+
+                    // TS1: 1) TOUCH SCR COORDS
+                    Debug.LogFormat("Touch SCR: {0}", touch.position);
+
+                    // TS1: 2) BLOB MAT COORDS
+                    Debug.LogFormat("Blob MAT: {0} \n {1} \n {2} \n {3}", 
+                        srcPointArray[0], srcPointArray[1], srcPointArray[2], srcPointArray[3]);
 
                     // Display cached top-down
                     Texture2D topTexture = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
                     Utils.matToTexture2D(cached_homoMat, topTexture, false, 0);
                     m_TopImage.texture = (Texture) topTexture;
+
+                    trackScreenPoints();
                 }
             }
             
