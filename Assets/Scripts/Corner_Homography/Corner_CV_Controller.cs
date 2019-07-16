@@ -233,36 +233,36 @@ public class Corner_CV_Controller : MonoBehaviour
     void BlobDetection() {
         SimpleBlobDetector detector = SimpleBlobDetector.create();
 
-        // Core.flip(cached_initMat, imageMat, 0);
-        cached_initMat = imageMat;
+        Core.flip(cached_initMat, imageMat, 0);
+        // cached_initMat = imageMat;
 
         keyMat = new MatOfKeyPoint();
         detector.detect(imageMat, keyMat);
 
-        // Features2d.drawKeypoints(imageMat, keyMat, outMat);
+        Features2d.drawKeypoints(imageMat, keyMat, outMat);
 
-        if (keyMat.rows() < 4) 
-            return; 
+        // if (keyMat.rows() < 4) 
+        //     return; 
 
-        for (int i = 0; i < 4; i++)
-        {
-            srcPointArray[i] = new Point(keyMat.get(i, 0)[0], keyMat.get(i, 0)[1]);
-        }
+        // for (int i = 0; i < 4; i++)
+        // {
+        //     srcPointArray[i] = new Point(keyMat.get(i, 0)[0], keyMat.get(i, 0)[1]);
+        // }
         
-        SortPoints();
+        // SortPoints();
 
-        regPointArray[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
-        regPointArray[1] = new Point(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT);
-        regPointArray[2] = new Point(0.0, 0.0);
-        regPointArray[3] = new Point(HOMOGRAPHY_WIDTH, 0.0);
+        // regPointArray[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
+        // regPointArray[1] = new Point(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT);
+        // regPointArray[2] = new Point(0.0, 0.0);
+        // regPointArray[3] = new Point(HOMOGRAPHY_WIDTH, 0.0);
 
-        MatOfPoint2f srcPoints = new MatOfPoint2f(srcPointArray);
-        MatOfPoint2f regPoints = new MatOfPoint2f(regPointArray);
+        // MatOfPoint2f srcPoints = new MatOfPoint2f(srcPointArray);
+        // MatOfPoint2f regPoints = new MatOfPoint2f(regPointArray);
 
-        // Creating the H Matrix
-        Mat Homo_Mat = Calib3d.findHomography(srcPoints, regPoints);
+        // // Creating the H Matrix
+        // Mat Homo_Mat = Calib3d.findHomography(srcPoints, regPoints);
 
-        Imgproc.warpPerspective(imageMat, cached_homoMat, Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
+        // Imgproc.warpPerspective(imageMat, cached_homoMat, Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
     }
 
     // Warps cached_homoMat to outMat
@@ -298,14 +298,14 @@ public class Corner_CV_Controller : MonoBehaviour
         Debug.LogFormat("RawImage Rect: {0}", m_RawImage.uvRect);
 
         m_RawImage.SetNativeSize();
-        m_RawImage.transform.position = new Vector3(scr_w/4, scr_h/4, 0.0f);
-        m_RawImage.transform.localScale = new Vector3(scale/4, scale/4, 0.0f);
-        // m_RawImage.transform.position = new Vector3(scr_w/2, scr_h/2, 0.0f);
-        // m_RawImage.transform.localScale = new Vector3(scale, scale, 0.0f);
+        // m_RawImage.transform.position = new Vector3(scr_w/4, scr_h/4, 0.0f);
+        // m_RawImage.transform.localScale = new Vector3(scale/4, scale/4, 0.0f);
+        m_RawImage.transform.position = new Vector3(scr_w/2, scr_h/2, 0.0f);
+        m_RawImage.transform.localScale = new Vector3(scale, scale, 0.0f);
 
-        m_TopImage.SetNativeSize();
-        m_TopImage.transform.position = new Vector3(3*scr_w/4, scr_h/4, 0.0f);
-        m_TopImage.transform.localScale = new Vector3(scale/4, scale/4, 0.0f);
+        // m_TopImage.SetNativeSize();
+        // m_TopImage.transform.position = new Vector3(3*scr_w/4, scr_h/4, 0.0f);
+        // m_TopImage.transform.localScale = new Vector3(scale/4, scale/4, 0.0f);
     }
 
     void trackScreenPoints() 
@@ -360,9 +360,9 @@ public class Corner_CV_Controller : MonoBehaviour
                     BlobDetection();
 
                     // Display cached top-down
-                    Texture2D topTexture = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
-                    Utils.matToTexture2D(cached_homoMat, topTexture, false, 0);
-                    m_TopImage.texture = (Texture) topTexture;
+                    // Texture2D topTexture = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
+                    // Utils.matToTexture2D(cached_homoMat, topTexture, false, 0);
+                    // m_TopImage.texture = (Texture) topTexture;
 
                     // DEBUG: Display detected reference poitns (SCR)
                     // trackScreenPoints();
@@ -370,7 +370,7 @@ public class Corner_CV_Controller : MonoBehaviour
             }
             
             // Warps cached top-down and gets outMat. 
-            HomographyTransform(greyPtr);
+            // HomographyTransform(greyPtr);
             // outMat = cached_homoMat;
 
             // Displays OpenCV Mat as a Texture
