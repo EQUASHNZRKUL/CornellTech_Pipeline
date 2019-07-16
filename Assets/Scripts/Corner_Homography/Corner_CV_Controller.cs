@@ -312,12 +312,6 @@ public class Corner_CV_Controller : MonoBehaviour
     void trackScreenPoints() 
     {
         // DEBUG: Displays the detected screen points with sprites
-
-        // m_Sprite1.SetNativeSize();
-        // m_Sprite2.SetNativeSize();
-        // m_Sprite3.SetNativeSize();
-        // m_Sprite4.SetNativeSize();
-
         m_Sprite1.transform.position = new Vector3(CameraToPixelX(srcPointArray[0].x), 
                                                    CameraToPixelY(srcPointArray[0].y), 0.0f);
         m_Sprite2.transform.position = new Vector3(CameraToPixelX(srcPointArray[1].x), 
@@ -326,13 +320,6 @@ public class Corner_CV_Controller : MonoBehaviour
                                                    CameraToPixelY(srcPointArray[2].y), 0.0f);
         m_Sprite4.transform.position = new Vector3(CameraToPixelX(srcPointArray[3].x), 
                                                    CameraToPixelY(srcPointArray[3].y), 0.0f);
-        
-        // Debug.Log(m_Sprite1.transform.position);
-        // Debug.Log(m_Sprite2.transform.position);
-        // Debug.Log(m_Sprite3.transform.position);
-        // Debug.Log(m_Sprite4.transform.position);
-
-
     }
 
     void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
@@ -372,20 +359,13 @@ public class Corner_CV_Controller : MonoBehaviour
 
                     // Detect reference points
                     BlobDetection();
-                    // Debug.Log(keyMat.size());
-
-                    // TS1: 1) TOUCH SCR COORDS
-                    Debug.LogFormat("Touch SCR: {0}", touch.position);
-
-                    // TS1: 2) BLOB MAT COORDS
-                    Debug.LogFormat("Blob MAT: {0} \n {1} \n {2} \n {3}", 
-                        srcPointArray[0], srcPointArray[1], srcPointArray[2], srcPointArray[3]);
 
                     // Display cached top-down
                     Texture2D topTexture = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
                     Utils.matToTexture2D(cached_homoMat, topTexture, false, 0);
                     m_TopImage.texture = (Texture) topTexture;
 
+                    // Display detected reference poitns (SCR)
                     trackScreenPoints();
                 }
             }
