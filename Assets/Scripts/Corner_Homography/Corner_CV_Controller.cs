@@ -232,8 +232,8 @@ public class Corner_CV_Controller : MonoBehaviour
     void BlobDetection() {
         SimpleBlobDetector detector = SimpleBlobDetector.create();
 
-        Core.flip(cached_initMat, imageMat, 0);
-        // cached_initMat = imageMat;
+        // Core.flip(cached_initMat, imageMat, 0);
+        cached_initMat = imageMat;
 
         keyMat = new MatOfKeyPoint();
         detector.detect(imageMat, keyMat);
