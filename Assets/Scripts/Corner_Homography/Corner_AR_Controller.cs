@@ -88,7 +88,6 @@ public class Corner_AR_Controller : MonoBehaviour
     float CameraToPixelY(double y)
     {
         return (float) (1080.0 - (3.375*(y - 80.0)));
-        // return (float) (1080.0 - (1080.0/320.0)*(y-80.0));
     }
 
     void SetWorldPoints()
