@@ -233,8 +233,8 @@ public class Corner_CV_Controller : MonoBehaviour
     void BlobDetection() {
         SimpleBlobDetector detector = SimpleBlobDetector.create();
 
-        // Core.flip(cached_initMat, imageMat, 0);
-        cached_initMat = imageMat;
+        Core.flip(cached_initMat, imageMat, 0);
+        // cached_initMat = imageMat;
 
         keyMat = new MatOfKeyPoint();
         detector.detect(imageMat, keyMat);
@@ -375,7 +375,7 @@ public class Corner_CV_Controller : MonoBehaviour
             // outMat = cached_homoMat;
 
             // Displays OpenCV Mat as a Texture
-            Utils.matToTexture2D(outMat, m_Texture, true, 0);
+            Utils.matToTexture2D(outMat, m_Texture, false, 0);
         }
 
         // Sets orientation of screen if necessary
