@@ -278,7 +278,6 @@ public class Corner_CV_Controller : MonoBehaviour
 
         Imgproc.warpPerspective(cached_homoMat, outMat, H, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
         Core.flip(outMat, outMat, 0);
-        // Imgproc.warpPerspective(cached_homoMat, outMat, H, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
     }
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
