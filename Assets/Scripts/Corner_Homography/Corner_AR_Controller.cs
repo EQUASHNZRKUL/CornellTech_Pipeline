@@ -93,12 +93,12 @@ public class Corner_AR_Controller : MonoBehaviour
     void SetWorldPoints()
     {
         Corner_CV_Controller CV_Controller = GameObject.Find("CV_Controller").GetComponent<Corner_CV_Controller>();
-        Point[] c1_points = CV_Controller.GetC1Points();
+        c1_scr_points = CV_Controller.GetC1Points();
 
         for (int i = 0; i < 4; i++)
         {
             // Point mat_point = c1_points[i];
-            Vector2 screen_vec = new Vector2(CameraToPixelX(c1_points[i].x), CameraToPixelY(c1_points[i].y));
+            Vector2 screen_vec = new Vector2(CameraToPixelX(c1_scr_points[i].x), CameraToPixelY(c1_scr_points[i].y));
             bool arRayBool = m_ARRaycastManager.Raycast(screen_vec, s_Hits, TrackableType.PlaneWithinPolygon);
             world_points[i] = s_Hits[0].pose.position; 
             spawnedObjects[i].transform.position = world_points[i];
@@ -125,11 +125,6 @@ public class Corner_AR_Controller : MonoBehaviour
             Touch touch = Input.GetTouch(0);
             if (touch.phase == TouchPhase.Began)
             {
-                for (int i = 0; i < 4; i++)
-                {
-                    Destroy(spawnedObjects[i]);
-                }
-
                 // Cache worldpoints 
                 SetWorldPoints(); 
             }

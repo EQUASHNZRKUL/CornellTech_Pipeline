@@ -365,8 +365,8 @@ public class Corner_CV_Controller : MonoBehaviour
                     Utils.matToTexture2D(cached_homoMat, topTexture, false, 0);
                     m_TopImage.texture = (Texture) topTexture;
 
-                    // Display detected reference poitns (SCR)
-                    trackScreenPoints();
+                    // DEBUG: Display detected reference poitns (SCR)
+                    // trackScreenPoints();
                 }
             }
             
