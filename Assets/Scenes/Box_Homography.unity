@@ -401,7 +401,6 @@ GameObject:
   - component: {fileID: 515354195}
   - component: {fileID: 515354196}
   - component: {fileID: 515354197}
-  - component: {fileID: 515354198}
   m_Layer: 0
   m_Name: CV_Controller
   m_TagString: Untagged
@@ -495,25 +494,6 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 515354191}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3c080882b03aa47e7b5fa738875f06cf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_ARCameraManager: {fileID: 282840816}
-  m_RawImage: {fileID: 1669868212}
-  m_TopImage1: {fileID: 0}
-  m_TopImage2: {fileID: 0}
-  m_TopImage3: {fileID: 0}
-  m_ImageInfo: {fileID: 519562891}
-  m_ARSessionManager: {fileID: 1335839534}
---- !u!114 &515354198
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 515354191}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e2961d621feb4a6590be9b8e33cba2e, type: 3}
@@ -521,13 +501,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_ARCameraManager: {fileID: 282840816}
   m_RawImage: {fileID: 1669868212}
-  m_TopImage: {fileID: 944860599}
+  m_TopImage1: {fileID: 944860599}
+  m_TopImage2: {fileID: 1567748682}
+  m_TopImage3: {fileID: 803548888}
   m_ImageInfo: {fileID: 519562891}
   m_ARSessionManager: {fileID: 1335839534}
-  m_Sprite1: {fileID: 0}
-  m_Sprite2: {fileID: 0}
-  m_Sprite3: {fileID: 0}
-  m_Sprite4: {fileID: 0}
 --- !u!1 &519562889
 GameObject:
   m_ObjectHideFlags: 0

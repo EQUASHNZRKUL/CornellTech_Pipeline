@@ -22,7 +22,7 @@ using OpenCVForUnity.Xfeatures2dModule;
 /// If a raycast hits a trackable, the <see cref="placedPrefab"/> is instantiated
 /// and moved to the hit position.
 /// </summary>
-public class Corner_CV_Controller : MonoBehaviour
+public class Box_CV_Controller : MonoBehaviour
 {
     public static double THRESH_VAL = 150.0;
     public static int K_ITERATIONS = 10;
@@ -216,6 +216,7 @@ public class Corner_CV_Controller : MonoBehaviour
         srcPointArray[3] = four; 
     }
 
+    // Swaps two values in indices i and j in srcPointArray
     void swap_src(int i, int j)
     {
         Point tmp = srcPointArray[i];
@@ -340,14 +341,15 @@ public class Corner_CV_Controller : MonoBehaviour
         }
     }
 
-    void Rectify(ref Mat cached_homoMat, ref) 
+    // Takes the face points face_points and rectifies + stores in cached_homoMat
+    void Rectify(ref Point[] facePointArray, ref Mat cached_homoMat) 
     {
         regPointArray[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
         regPointArray[1] = new Point(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT);
         regPointArray[2] = new Point(0.0, 0.0);
         regPointArray[3] = new Point(HOMOGRAPHY_WIDTH, 0.0);
 
-        MatOfPoint2f srcPoints = new MatOfPoint2f(srcPointArray);
+        MatOfPoint2f srcPoints = new MatOfPoint2f(facePointArray);
         MatOfPoint2f regPoints = new MatOfPoint2f(regPointArray);
 
         // Creating the H Matrix
@@ -378,9 +380,9 @@ public class Corner_CV_Controller : MonoBehaviour
         
         SortBox();
 
-        Rectify(ref cached_homoMat1);
-        Rectify(ref cached_homoMat2);
-        Rectify(ref cached_homoMat3);
+        Rectify(ref face1Array, ref cached_homoMat1);
+        Rectify(ref face2Array, ref cached_homoMat2);
+        Rectify(ref face3Array, ref cached_homoMat3);
     }
 
     // Warps cached_homoMat to outMat
@@ -482,7 +484,7 @@ public class Corner_CV_Controller : MonoBehaviour
                     m_TopImage1.texture = (Texture) topTexture2;
 
                     Texture2D topTexture3 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
-                    Utils.matToTexture2D(cached_homoMat2, topTexture3, false, 0);
+                    Utils.matToTexture2D(cached_homoMat3, topTexture3, false, 0);
                     m_TopImage1.texture = (Texture) topTexture3;
                 }
             }
