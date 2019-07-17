@@ -240,7 +240,6 @@ public class Corner_CV_Controller : MonoBehaviour
 
     // Lazy Box point sorting (hardcoded)
     void SortBox() {
-        Debug.Log("SB - 243");
         // Find mean point
         double x_mean = 0;
         double y_mean = 0; 
@@ -252,7 +251,6 @@ public class Corner_CV_Controller : MonoBehaviour
         x_mean = x_mean / 7;
         y_mean = y_mean / 7;
         
-        Debug.Log("SB - 255");
         // Find centroid
         {
             double min_dist = Math.Pow((srcPointArray[6].x - x_mean),2) + Math.Pow((srcPointArray[6].y - y_mean), 2);
@@ -277,10 +275,6 @@ public class Corner_CV_Controller : MonoBehaviour
             face3Array[0] = centroid; 
         }
 
-        Debug.LogFormat("Unsorted Source Points: {0} \n {1} \n {2} \n {3} \n {4} \n {5} \n {6}", 
-            srcPointArray[0], srcPointArray[1], srcPointArray[2], srcPointArray[3], 
-            srcPointArray[4], srcPointArray[5], srcPointArray[6]);
-
         // Getting the Facial points:
         // FACE 1: (min y and 2 min x)
         {
@@ -294,7 +288,6 @@ public class Corner_CV_Controller : MonoBehaviour
             }
             face1Array[3] = srcPointArray[min_j];
             face3Array[2] = srcPointArray[min_j];
-            Debug.LogFormat("Point (5): {0}", srcPointArray[min_j]);
             swap_src(min_j, 5);
 
             int min_x = 4; 
@@ -303,7 +296,6 @@ public class Corner_CV_Controller : MonoBehaviour
                     min_x = i; 
                 }
             }
-            Debug.LogFormat("Point (4): {0}", srcPointArray[min_x]);
             swap_src(min_x, 4);
 
             int min2_x = 3;
@@ -312,7 +304,6 @@ public class Corner_CV_Controller : MonoBehaviour
                     min2_x = i;
                 }
             }
-            Debug.LogFormat("Point (3): {0}", srcPointArray[min2_x]);
             swap_src(min2_x, 3);
 
             if (srcPointArray[4].y > srcPointArray[3].y)
@@ -333,16 +324,13 @@ public class Corner_CV_Controller : MonoBehaviour
                     max_x = i; 
                 }
             }
-            Debug.LogFormat("Point (2): {0}", srcPointArray[max_x]);
             swap_src(max_x, 2);
 
             if (srcPointArray[0].x > srcPointArray[1].x)
                 swap_src(0, 1);
-            Debug.LogFormat("Point (1): {0}", srcPointArray[1]);
 
             if (srcPointArray[1].y < srcPointArray[2].y)
                 swap_src(1, 2);
-            Debug.LogFormat("Point (0): {0}", srcPointArray[0]);
             
             face3Array[1] = srcPointArray[1];
             face3Array[3] = srcPointArray[2];
@@ -357,7 +345,6 @@ public class Corner_CV_Controller : MonoBehaviour
                 max_y = i; 
             }
         }
-        Debug.LogFormat("Box Function broken: {0}", (max_y != 0));
 
         // FACE 2: 
         {
@@ -366,19 +353,6 @@ public class Corner_CV_Controller : MonoBehaviour
             face2Array[2] = srcPointArray[6];
             face2Array[3] = srcPointArray[1];
         }
-
-        Debug.LogFormat("Sorted Source Points: {0} \n {1} \n {2} \n {3} \n {4} \n {5} \n {6}", 
-            srcPointArray[0], srcPointArray[1], srcPointArray[2], srcPointArray[3], 
-            srcPointArray[4], srcPointArray[5], srcPointArray[6]);
-
-        Debug.LogFormat("FACE 1 Points; {0} \n {1} \n {2} \n {3}", 
-            face1Array[0], face1Array[1], face1Array[2], face1Array[3]);
-
-        Debug.LogFormat("FACE 2 Points; {0} \n {1} \n {2} \n {3}", 
-            face2Array[0], face2Array[1], face2Array[2], face2Array[3]);
-
-        Debug.LogFormat("FACE 3 Points; {0} \n {1} \n {2} \n {3}", 
-            face3Array[0], face3Array[1], face3Array[2], face3Array[3]);
     }
 
     // Detects Blobs with Detector Framework and stores Top-down view into cached_homoMat
