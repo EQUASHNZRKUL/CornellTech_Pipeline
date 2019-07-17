@@ -22,7 +22,7 @@ using OpenCVForUnity.Xfeatures2dModule;
 /// If a raycast hits a trackable, the <see cref="placedPrefab"/> is instantiated
 /// and moved to the hit position.
 /// </summary>
-public class Corner_CV_Controller : MonoBehaviour
+public class Box_CV_Controller : MonoBehaviour
 {
     public static double THRESH_VAL = 150.0;
     public static int K_ITERATIONS = 10;
@@ -36,12 +36,9 @@ public class Corner_CV_Controller : MonoBehaviour
     private Mat cached_homoMat = new Mat (480, 640, CvType.CV_8UC1);
 
     private MatOfKeyPoint keyMat = new MatOfKeyPoint();
-    private Point[] srcPointArray = new Point[7];
+    private Point[] srcPointArray = new Point[4];
     private Point[] regPointArray = new Point[4];
     private Point[] dstPointArray = new Point[4];
-    private Point[] face1Array = new Point[4];
-    private Point[] face2Array = new Point[4];
-    private Point[] face3Array = new Point[4];
 
     private ScreenOrientation? m_CachedOrientation = null;
     private Texture2D m_Texture;
@@ -168,6 +165,7 @@ public class Corner_CV_Controller : MonoBehaviour
             octaves, corner_thresh, dog_thresh, max_detections);
 
         // Finding corners
+        // imageMat = cached_initMat;
         Core.flip(cached_initMat, imageMat, 0);
         keyMat = new MatOfKeyPoint();
         detector.detect(imageMat, keyMat);
@@ -231,130 +229,6 @@ public class Corner_CV_Controller : MonoBehaviour
         srcPointArray[3] = four; 
     }
 
-    void swap_src(int i, int j)
-    {
-        Point tmp = srcPointArray[i];
-        srcPointArray[i] = srcPointArray[j];
-        srcPointArray[j] = tmp; 
-    }
-
-    // Lazy Box point sorting (hardcoded)
-    void SortBox() {
-        // Find mean point
-        double x_mean = 0;
-        double y_mean = 0; 
-        for (int i = 0; i < 7; i++)
-        {
-            x_mean = x_mean + srcPointArray[i].x;
-            y_mean = y_mean + srcPointArray[i].y;
-        }
-        x_mean = x_mean / 7;
-        y_mean = y_mean / 7;
-        
-        // Find centroid
-        {
-            double min_dist = Math.Pow((srcPointArray[6].x - x_mean),2) + Math.Pow((srcPointArray[6].y - y_mean), 2);
-            int min_i = 6;
-            for (int i = 0; i < 6; i++)
-            {
-                double dist = Math.Pow((srcPointArray[i].x - x_mean),2) + Math.Pow((srcPointArray[i].y - y_mean), 2);
-                if (dist < min_dist)
-                {
-                    min_dist = dist;
-                    min_i = i;
-                }
-            }
-
-            // Swapping centroid to srcPointArray[6];
-            swap_src(min_i, 6);
-            Point centroid = srcPointArray[6];
-
-            // Inserting centroid into face arrays
-            face1Array[1] = centroid; 
-            face2Array[2] = centroid; 
-            face3Array[0] = centroid; 
-        }
-
-        // Getting the Facial points:
-        // FACE 1: (min y and 2 min x)
-        {
-            int min_j = 5;
-            for (int i = 0; i < 5; i++)
-            {
-                if (srcPointArray[i].y < srcPointArray[min_j].y)
-                {
-                    min_j = i; 
-                }
-            }
-            face1Array[3] = srcPointArray[min_j];
-            face3Array[2] = srcPointArray[min_j];
-            swap_src(min_j, 5);
-
-            int min_x = 4; 
-            for (int i = 0; i < 4; i++) {
-                if (srcPointArray[i].x < srcPointArray[min_x].x) {
-                    min_x = i; 
-                }
-            }
-            swap_src(min_x, 4);
-
-            int min2_x = 3;
-            for (int i = 0; i < 3; i++) {
-                if (srcPointArray[i].x < srcPointArray[min2_x].x) {
-                    min2_x = i;
-                }
-            }
-            swap_src(min2_x, 3);
-
-            if (srcPointArray[4].y > srcPointArray[3].y)
-            {
-                swap_src(3, 4);
-            }
-            face1Array[0] = srcPointArray[3];
-            face1Array[2] = srcPointArray[4];
-        }
-
-        // FACE 3: (2 max x)
-        {
-            int max_x = 2; 
-            for (int i = 0; i < 2; i++)
-            {
-                if (srcPointArray[i].x > srcPointArray[max_x].x)
-                {
-                    max_x = i; 
-                }
-            }
-            swap_src(max_x, 2);
-
-            if (srcPointArray[0].x > srcPointArray[1].x)
-                swap_src(0, 1);
-
-            if (srcPointArray[1].y < srcPointArray[2].y)
-                swap_src(1, 2);
-            
-            face3Array[1] = srcPointArray[1];
-            face3Array[3] = srcPointArray[2];
-        }
-
-        // src[0] test: 
-        int max_y = 6;
-        for (int i = 0; i < 6; i++)
-        {
-            if (srcPointArray[i].y > srcPointArray[max_y].y)
-            {
-                max_y = i; 
-            }
-        }
-
-        // FACE 2: 
-        {
-            face2Array[0] = srcPointArray[3];
-            face2Array[1] = srcPointArray[0];
-            face2Array[2] = srcPointArray[6];
-            face2Array[3] = srcPointArray[1];
-        }
-    }
-
     // Detects Blobs with Detector Framework and stores Top-down view into cached_homoMat
     void BlobDetection() {
         SimpleBlobDetector detector = SimpleBlobDetector.create();
@@ -365,17 +239,17 @@ public class Corner_CV_Controller : MonoBehaviour
         keyMat = new MatOfKeyPoint();
         detector.detect(imageMat, keyMat);
 
-        Features2d.drawKeypoints(imageMat, keyMat, outMat);
+        // Features2d.drawKeypoints(imageMat, keyMat, outMat);
 
-        if (keyMat.rows() < 7) 
+        if (keyMat.rows() < 4) 
             return; 
 
-        for (int i = 0; i < 7; i++)
+        for (int i = 0; i < 4; i++)
         {
             srcPointArray[i] = new Point(keyMat.get(i, 0)[0], keyMat.get(i, 0)[1]);
         }
         
-        SortBox();
+        SortPoints();
 
         regPointArray[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
         regPointArray[1] = new Point(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT);
@@ -392,9 +266,9 @@ public class Corner_CV_Controller : MonoBehaviour
     }
 
     // Warps cached_homoMat to outMat
-    void HomographyTransform(ref Mat homoMat) 
+    void HomographyTransform(IntPtr greyscale) 
     {
-        Corner_AR_Controller Homo_Controller = m_ARSessionManager.GetComponent<Corner_AR_Controller>();
+        Box_AR_Controller Homo_Controller = m_ARSessionManager.GetComponent<Box_AR_Controller>();
         Point[] c2_scrpoints = Homo_Controller.GetScreenpoints(false);
 
         MatOfPoint2f initPoints = new MatOfPoint2f(regPointArray);
@@ -402,7 +276,7 @@ public class Corner_CV_Controller : MonoBehaviour
 
         Mat H = Calib3d.findHomography(initPoints, currPoints);
 
-        Imgproc.warpPerspective(homoMat, outMat, H, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
+        Imgproc.warpPerspective(cached_homoMat, outMat, H, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
         Core.flip(outMat, outMat, 0);
     }
 
@@ -432,6 +306,19 @@ public class Corner_CV_Controller : MonoBehaviour
         m_TopImage.SetNativeSize();
         m_TopImage.transform.position = new Vector3(3*scr_w/4, scr_h/4, 0.0f);
         m_TopImage.transform.localScale = new Vector3(scale/4, scale/4, 0.0f);
+    }
+
+    void trackScreenPoints() 
+    {
+        // DEBUG: Displays the detected screen points with sprites
+        m_Sprite1.transform.position = new Vector3(CameraToPixelX(srcPointArray[0].x), 
+                                                   CameraToPixelY(srcPointArray[0].y), 0.0f);
+        m_Sprite2.transform.position = new Vector3(CameraToPixelX(srcPointArray[1].x), 
+                                                   CameraToPixelY(srcPointArray[1].y), 0.0f);
+        m_Sprite3.transform.position = new Vector3(CameraToPixelX(srcPointArray[2].x), 
+                                                   CameraToPixelY(srcPointArray[2].y), 0.0f);
+        m_Sprite4.transform.position = new Vector3(CameraToPixelX(srcPointArray[3].x), 
+                                                   CameraToPixelY(srcPointArray[3].y), 0.0f);
     }
 
     void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
@@ -476,11 +363,15 @@ public class Corner_CV_Controller : MonoBehaviour
                     Texture2D topTexture = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
                     Utils.matToTexture2D(cached_homoMat, topTexture, false, 0);
                     m_TopImage.texture = (Texture) topTexture;
+
+                    // DEBUG: Display detected reference poitns (SCR)
+                    // trackScreenPoints();
                 }
             }
             
             // Warps cached top-down and gets outMat. 
-            HomographyTransform(ref cached_homoMat);
+            HomographyTransform(greyPtr);
+            // outMat = cached_homoMat;
 
             // Displays OpenCV Mat as a Texture
             Utils.matToTexture2D(outMat, m_Texture, false, 0);
