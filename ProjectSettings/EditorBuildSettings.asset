@@ -65,9 +65,12 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/Planar_Homography.unity
     guid: 74fa4c3bba96c4db9b3889f3ed4a8ab2
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Corner_Homography.unity
     guid: e5c7c4c6f4ed24375a6c894c8808b7c0
+  - enabled: 1
+    path: Assets/Scenes/Box_Homography.unity
+    guid: 5818f607718854bab8d69ed0c0f3e8a5
   m_configObjects:
     com.unity.xr.arkit.PlayerSettings: {fileID: 11400000, guid: 2d5fb8e61571b4e3897f221189089fd6,
       type: 2}

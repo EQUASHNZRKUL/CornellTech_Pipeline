@@ -73,20 +73,20 @@ public class Box_CV_Controller : MonoBehaviour
     }
 
     [SerializeField]
-    RawImage m_TopImage2;
-    public RawImage topImage2 
+    RawImage m_TopImage2; 
+    public RawImage topImage2
     {
         get { return m_TopImage2; }
-        set { m_TopImage2 = value; } 
-    } 
+        set { m_TopImage2 = value; }
+    }
 
     [SerializeField]
-    RawImage m_TopImage3;
-    public RawImage topImage3 
+    RawImage m_TopImage3; 
+    public RawImage topImage3
     {
         get { return m_TopImage3; }
-        set { m_TopImage3 = value; } 
-    } 
+        set { m_TopImage3 = value; }
+    }
 
     [SerializeField]
     Text m_ImageInfo;
@@ -133,6 +133,7 @@ public class Box_CV_Controller : MonoBehaviour
     float CameraToPixelY(double y)
     {
         return (float) (1080.0 - (3.375*(y - 80.0)));
+        // return (float) (1080.0 - (1080.0/320.0)*(y-80.0));
     }
 
     // Returns scrPointArray for public access
@@ -142,62 +143,6 @@ public class Box_CV_Controller : MonoBehaviour
         return srcPointArray;
     }
 
-    // Sorts Points to match standardized Z formation
-    void SortPoints() {
-        Point storeGreaterY(Point fst, Point snd) {
-            if (fst.y > snd.y)
-                return fst; 
-            return snd; 
-        }
-
-        // Find top points
-        Point one = new Point(0.0, 0.0);
-        Point two = new Point(0.0, 0.0);
-        int i_1 = 0;
-        int i_2 = 0;
-        for (int i = 0; i < 4; i++) {
-            one = storeGreaterY(one, srcPointArray[i]);
-            i_1 = i; 
-        }
-        for (int i = 0; i < 4; i++) {
-            if (srcPointArray[i] != one) {
-                two = storeGreaterY(two, srcPointArray[i]);
-                i_2 = i;
-            }
-        }
-        if (one.x > two.x) { // Swap if necessary
-            Point tmp = one; 
-            one = two; 
-            two = tmp; 
-        }
-
-        // Find low points
-        Point three = new Point(0.0, 0.0);
-        Point four = new Point(0.0, 0.0);
-        for (int i = 0; i < 4; i++) {
-            if ((srcPointArray[i] != one) && (srcPointArray[i] != two)) {
-                if (three == four) { // TODO; replace with == new point(0.0, 0.0)
-                    three = srcPointArray[i];
-                }
-                else {
-                    four = srcPointArray[i];
-                }
-            }
-        }
-        if (three.x > four.x) { // Swap if necessary
-            Point tmp = three; 
-            three = four; 
-            four = tmp; 
-        }
-
-        // storing sorted values
-        srcPointArray[0] = one;
-        srcPointArray[1] = two; 
-        srcPointArray[2] = three; 
-        srcPointArray[3] = four; 
-    }
-
-    // Swaps two values in indices i and j in srcPointArray
     void swap_src(int i, int j)
     {
         Point tmp = srcPointArray[i];
@@ -207,6 +152,7 @@ public class Box_CV_Controller : MonoBehaviour
 
     // Lazy Box point sorting (hardcoded)
     void SortBox() {
+        Debug.Log("SB - 243");
         // Find mean point
         double x_mean = 0;
         double y_mean = 0; 
@@ -218,6 +164,7 @@ public class Box_CV_Controller : MonoBehaviour
         x_mean = x_mean / 7;
         y_mean = y_mean / 7;
         
+        Debug.Log("SB - 255");
         // Find centroid
         {
             double min_dist = Math.Pow((srcPointArray[6].x - x_mean),2) + Math.Pow((srcPointArray[6].y - y_mean), 2);
@@ -242,6 +189,10 @@ public class Box_CV_Controller : MonoBehaviour
             face3Array[0] = centroid; 
         }
 
+        Debug.LogFormat("Unsorted Source Points: {0} \n {1} \n {2} \n {3} \n {4} \n {5} \n {6}", 
+            srcPointArray[0], srcPointArray[1], srcPointArray[2], srcPointArray[3], 
+            srcPointArray[4], srcPointArray[5], srcPointArray[6]);
+
         // Getting the Facial points:
         // FACE 1: (min y and 2 min x)
         {
@@ -255,6 +206,7 @@ public class Box_CV_Controller : MonoBehaviour
             }
             face1Array[3] = srcPointArray[min_j];
             face3Array[2] = srcPointArray[min_j];
+            Debug.LogFormat("Point (5): {0}", srcPointArray[min_j]);
             swap_src(min_j, 5);
 
             int min_x = 4; 
@@ -263,6 +215,7 @@ public class Box_CV_Controller : MonoBehaviour
                     min_x = i; 
                 }
             }
+            Debug.LogFormat("Point (4): {0}", srcPointArray[min_x]);
             swap_src(min_x, 4);
 
             int min2_x = 3;
@@ -271,6 +224,7 @@ public class Box_CV_Controller : MonoBehaviour
                     min2_x = i;
                 }
             }
+            Debug.LogFormat("Point (3): {0}", srcPointArray[min2_x]);
             swap_src(min2_x, 3);
 
             if (srcPointArray[4].y > srcPointArray[3].y)
@@ -291,13 +245,16 @@ public class Box_CV_Controller : MonoBehaviour
                     max_x = i; 
                 }
             }
+            Debug.LogFormat("Point (2): {0}", srcPointArray[max_x]);
             swap_src(max_x, 2);
 
             if (srcPointArray[0].x > srcPointArray[1].x)
                 swap_src(0, 1);
+            Debug.LogFormat("Point (1): {0}", srcPointArray[1]);
 
             if (srcPointArray[1].y < srcPointArray[2].y)
                 swap_src(1, 2);
+            Debug.LogFormat("Point (0): {0}", srcPointArray[0]);
             
             face3Array[1] = srcPointArray[1];
             face3Array[3] = srcPointArray[2];
@@ -312,6 +269,7 @@ public class Box_CV_Controller : MonoBehaviour
                 max_y = i; 
             }
         }
+        Debug.LogFormat("Box Function broken: {0}", (max_y != 0));
 
         // FACE 2: 
         {
@@ -320,33 +278,25 @@ public class Box_CV_Controller : MonoBehaviour
             face2Array[2] = srcPointArray[6];
             face2Array[3] = srcPointArray[1];
         }
-    }
 
-    // Takes the face points face_points and rectifies + stores in cached_homoMat
-    void Rectify(ref Point[] facePointArray, ref Mat cached_homoMat) 
-    {
-        regPointArray[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
-        regPointArray[1] = new Point(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT);
-        regPointArray[2] = new Point(0.0, 0.0);
-        regPointArray[3] = new Point(HOMOGRAPHY_WIDTH, 0.0);
+        Debug.LogFormat("Sorted Source Points: {0} \n {1} \n {2} \n {3} \n {4} \n {5} \n {6}", 
+            srcPointArray[0], srcPointArray[1], srcPointArray[2], srcPointArray[3], 
+            srcPointArray[4], srcPointArray[5], srcPointArray[6]);
 
-        MatOfPoint2f srcPoints = new MatOfPoint2f(facePointArray);
-        MatOfPoint2f regPoints = new MatOfPoint2f(regPointArray);
+        Debug.LogFormat("FACE 1 Points; {0} \n {1} \n {2} \n {3}", 
+            face1Array[0], face1Array[1], face1Array[2], face1Array[3]);
 
-        // Creating the H Matrix
-        Mat Homo_Mat = Calib3d.findHomography(srcPoints, regPoints);
+        Debug.LogFormat("FACE 2 Points; {0} \n {1} \n {2} \n {3}", 
+            face2Array[0], face2Array[1], face2Array[2], face2Array[3]);
 
-        Debug.Log("R:339");
-        Imgproc.warpPerspective(imageMat, cached_homoMat, Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
+        Debug.LogFormat("FACE 3 Points; {0} \n {1} \n {2} \n {3}", 
+            face3Array[0], face3Array[1], face3Array[2], face3Array[3]);
     }
 
     // Detects Blobs with Detector Framework and stores Top-down view into cached_homoMat
     void BlobDetection() {
         SimpleBlobDetector detector = SimpleBlobDetector.create();
-
-        // Core.flip(cached_initMat, imageMat, 0);
-        cached_initMat = imageMat;
-
+        Core.flip(cached_initMat, imageMat, 0);
         keyMat = new MatOfKeyPoint();
         detector.detect(imageMat, keyMat);
 
@@ -361,12 +311,24 @@ public class Box_CV_Controller : MonoBehaviour
         }
         
         SortBox();
+    }
 
-        Debug.Log("BD: 364");
+    void Rectify(ref Point[] facePointArray, ref Mat cachedMat) {
+        regPointArray[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
+        regPointArray[1] = new Point(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT);
+        regPointArray[2] = new Point(0.0, 0.0);
+        regPointArray[3] = new Point(HOMOGRAPHY_WIDTH, 0.0);
 
-        Rectify(ref face1Array, ref cached_homoMat1);
-        Rectify(ref face2Array, ref cached_homoMat2);
-        Rectify(ref face3Array, ref cached_homoMat3);
+        MatOfPoint2f srcPoints = new MatOfPoint2f(facePointArray);
+        MatOfPoint2f regPoints = new MatOfPoint2f(regPointArray);
+
+        Debug.LogFormat("Rectify Face Points; {0} \n {1} \n {2} \n {3}", 
+            facePointArray[0], facePointArray[1], facePointArray[2], facePointArray[3]);
+
+        // Creating the H Matrix
+        Mat Homo_Mat = Calib3d.findHomography(srcPoints, regPoints);
+
+        Imgproc.warpPerspective(imageMat, cachedMat, Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
     }
 
     // Warps cached_homoMat to outMat
@@ -408,16 +370,16 @@ public class Box_CV_Controller : MonoBehaviour
         // m_RawImage.transform.localScale = new Vector3(scale, scale, 0.0f);
 
         m_TopImage1.SetNativeSize();
-        m_TopImage1.transform.position = new Vector3(scr_w/6, scr_h/6, 0.0f);
-        m_TopImage1.transform.localScale = new Vector3(scale/4, scale/4, 0.0f);
+        m_TopImage1.transform.position = new Vector3(5*scr_w/6, scr_h/6, 0.0f);
+        m_TopImage1.transform.localScale = new Vector3(scale/6, scale/6, 0.0f);
 
         m_TopImage2.SetNativeSize();
-        m_TopImage2.transform.position = new Vector3(3*scr_w/6, scr_h/6, 0.0f);
-        m_TopImage2.transform.localScale = new Vector3(scale/4, scale/4, 0.0f);
+        m_TopImage2.transform.position = new Vector3(5*scr_w/6, scr_h/2, 0.0f);
+        m_TopImage2.transform.localScale = new Vector3(scale/6, scale/6, 0.0f);
 
         m_TopImage3.SetNativeSize();
-        m_TopImage3.transform.position = new Vector3(5*scr_w/6, scr_h/6, 0.0f);
-        m_TopImage3.transform.localScale = new Vector3(scale/4, scale/4, 0.0f);
+        m_TopImage3.transform.position = new Vector3(5*scr_w/6, 5*scr_h/6, 0.0f);
+        m_TopImage3.transform.localScale = new Vector3(scale/6, scale/6, 0.0f);
     }
 
     void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
@@ -429,12 +391,9 @@ public class Box_CV_Controller : MonoBehaviour
             Debug.Log("Uh Oh");
             return;
         }
-        Debug.Log("OFCR: 432");
 
         Vector2 img_dim = image.dimensions;
         XRCameraImagePlane greyscale = image.GetPlane(0);
-
-        Debug.Log("OFCR: 437");
 
         // Instantiates new m_Texture if necessary
         if (m_Texture == null || m_Texture.width != image.width)
@@ -444,8 +403,6 @@ public class Box_CV_Controller : MonoBehaviour
         }
 
         image.Dispose();
-
-        Debug.Log("OFCR: 448");
 
         // Process the image here: 
         unsafe {
@@ -461,10 +418,12 @@ public class Box_CV_Controller : MonoBehaviour
                     Utils.copyToMat(greyPtr, cached_initMat);
 
                     // Detect reference points
-                    Debug.Log("OCFR: 459");
                     BlobDetection();
 
-                    Debug.Log("OCFR: 458");
+                    Rectify(ref face1Array, ref cached_homoMat1);
+                    Rectify(ref face2Array, ref cached_homoMat2);
+                    Rectify(ref face3Array, ref cached_homoMat3);
+
                     // Display cached top-down
                     Texture2D topTexture1 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
                     Utils.matToTexture2D(cached_homoMat1, topTexture1, false, 0);
@@ -472,19 +431,21 @@ public class Box_CV_Controller : MonoBehaviour
 
                     Texture2D topTexture2 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
                     Utils.matToTexture2D(cached_homoMat2, topTexture2, false, 0);
-                    m_TopImage1.texture = (Texture) topTexture2;
+                    m_TopImage2.texture = (Texture) topTexture2;
 
                     Texture2D topTexture3 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
                     Utils.matToTexture2D(cached_homoMat3, topTexture3, false, 0);
-                    m_TopImage1.texture = (Texture) topTexture3;
+                    m_TopImage3.texture = (Texture) topTexture3;
+
+                    Debug.Log("OCFR: 510");
                 }
             }
             
             // Warps cached top-down and gets outMat. 
-            // HomographyTransform(ref cached_homoMat1);
+            // HomographyTransform(ref cached_homoMat);
 
             // Displays OpenCV Mat as a Texture
-            // Utils.matToTexture2D(outMat, m_Texture, false, 0);
+            Utils.matToTexture2D(outMat, m_Texture, false, 0);
         }
 
         // Sets orientation of screen if necessary
@@ -494,6 +455,8 @@ public class Box_CV_Controller : MonoBehaviour
             m_CachedOrientation = Screen.orientation;
             ConfigureRawImageInSpace(img_dim);
         }
+
+        // Debug.Log("OCFR: 529");
 
         m_RawImage.texture = (Texture) m_Texture;
 
