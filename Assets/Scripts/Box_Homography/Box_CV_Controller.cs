@@ -142,25 +142,6 @@ public class Box_CV_Controller : MonoBehaviour
         return srcPointArray;
     }
 
-    // Detects Corners with Detector Framework and Draws Keypoints to outMat
-    void CornerDetection() {
-        // Creating Detector
-        int octaves = 6;
-        float corner_thresh = 0.015f;
-        float dog_thresh = 0.015f;
-        int max_detections = 5;
-        HarrisLaplaceFeatureDetector detector = HarrisLaplaceFeatureDetector.create(
-            octaves, corner_thresh, dog_thresh, max_detections);
-
-        // Finding corners
-        Core.flip(cached_initMat, imageMat, 0);
-        keyMat = new MatOfKeyPoint();
-        detector.detect(imageMat, keyMat);
-
-        // Draw corners
-        Features2d.drawKeypoints(imageMat, keyMat, outMat);
-    }
-
     // Sorts Points to match standardized Z formation
     void SortPoints() {
         Point storeGreaterY(Point fst, Point snd) {
@@ -355,6 +336,7 @@ public class Box_CV_Controller : MonoBehaviour
         // Creating the H Matrix
         Mat Homo_Mat = Calib3d.findHomography(srcPoints, regPoints);
 
+        Debug.Log("R:339");
         Imgproc.warpPerspective(imageMat, cached_homoMat, Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
     }
 
@@ -379,6 +361,8 @@ public class Box_CV_Controller : MonoBehaviour
         }
         
         SortBox();
+
+        Debug.Log("BD: 364");
 
         Rectify(ref face1Array, ref cached_homoMat1);
         Rectify(ref face2Array, ref cached_homoMat2);
@@ -445,9 +429,12 @@ public class Box_CV_Controller : MonoBehaviour
             Debug.Log("Uh Oh");
             return;
         }
+        Debug.Log("OFCR: 432");
 
         Vector2 img_dim = image.dimensions;
         XRCameraImagePlane greyscale = image.GetPlane(0);
+
+        Debug.Log("OFCR: 437");
 
         // Instantiates new m_Texture if necessary
         if (m_Texture == null || m_Texture.width != image.width)
@@ -457,6 +444,8 @@ public class Box_CV_Controller : MonoBehaviour
         }
 
         image.Dispose();
+
+        Debug.Log("OFCR: 448");
 
         // Process the image here: 
         unsafe {
@@ -472,8 +461,10 @@ public class Box_CV_Controller : MonoBehaviour
                     Utils.copyToMat(greyPtr, cached_initMat);
 
                     // Detect reference points
+                    Debug.Log("OCFR: 459");
                     BlobDetection();
 
+                    Debug.Log("OCFR: 458");
                     // Display cached top-down
                     Texture2D topTexture1 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
                     Utils.matToTexture2D(cached_homoMat1, topTexture1, false, 0);
@@ -490,10 +481,10 @@ public class Box_CV_Controller : MonoBehaviour
             }
             
             // Warps cached top-down and gets outMat. 
-            HomographyTransform(ref cached_homoMat1);
+            // HomographyTransform(ref cached_homoMat1);
 
             // Displays OpenCV Mat as a Texture
-            Utils.matToTexture2D(outMat, m_Texture, false, 0);
+            // Utils.matToTexture2D(outMat, m_Texture, false, 0);
         }
 
         // Sets orientation of screen if necessary
