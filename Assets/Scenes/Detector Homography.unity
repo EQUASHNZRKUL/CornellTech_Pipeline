@@ -519,8 +519,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62ce71af3762f4a1db20fb9973bde3f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spa_full: 0
   m_ARCameraManager: {fileID: 282840816}
   m_RawImage: {fileID: 1669868212}
+  m_TopImage1: {fileID: 944860599}
+  m_TopImage2: {fileID: 1567748682}
+  m_TopImage3: {fileID: 803548888}
   m_ImageInfo: {fileID: 519562891}
   m_ARSessionManager: {fileID: 1335839534}
 --- !u!1 &519562889

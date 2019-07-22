@@ -31,17 +31,22 @@ public class Detector_CV_Controller : MonoBehaviour
     public static double HOMOGRAPHY_WIDTH = 640.0;
     public static double HOMOGRAPHY_HEIGHT = 480.0;
 
+    // CV Mats
     public Mat imageMat = new Mat(480, 640, CvType.CV_8UC1);
     public Mat outMat = new Mat(480, 640, CvType.CV_8UC1);
     private Mat cached_initMat = new Mat (480, 640, CvType.CV_8UC1);
     private List<Mat> corners = new List<Mat>();
     private Mat ids = new Mat(480, 640, CvType.CV_8UC1);
+    private Mat[] homoMat_array = new Mat[3];
 
+    // Face corner indices for each face
     private int[,] face_index = { {3, 6, 4, 5}, {0, 1, 3, 6}, {6, 1, 5, 2} };
 
+    // Populated booleans
     public bool spa_full = false; 
     private bool[] faceX_full = new bool[3]; 
 
+    // Point Arrays
     private Point[] src_point_array = new Point[7];
     private Point[] src_recent_array = new Point[7];
     private Point[] reg_point_array = new Point[4];
@@ -64,6 +69,32 @@ public class Detector_CV_Controller : MonoBehaviour
         get { return m_RawImage; }
         set { m_RawImage = value; }
     }
+
+    [SerializeField]
+    RawImage m_TopImage1;
+    public RawImage topImage1 
+    {
+        get { return m_TopImage1; }
+        set { m_TopImage1 = value; }
+    }
+
+    [SerializeField]
+    RawImage m_TopImage2;
+    public RawImage topImage2 
+    {
+        get { return m_TopImage2; }
+        set { m_TopImage2 = value; }
+    }
+
+    [SerializeField]
+    RawImage m_TopImage3;
+    public RawImage topImage3 
+    {
+        get { return m_TopImage3; }
+        set { m_TopImage3 = value; }
+    }
+
+    // private RawImage[] topImage_array = {m_TopImage1, m_TopImage2, m_TopImage3};
 
     [SerializeField]
     Text m_ImageInfo;
@@ -141,6 +172,16 @@ public class Detector_CV_Controller : MonoBehaviour
         return true; 
     }
 
+    bool check_recent_faces(int face_i) {
+        for (int i = 0; i < 4; i++) {
+            int src_i = face_index[face_i, i]; 
+            if (src_recent_array[src_i] == null) {
+                return false; 
+            }
+        }
+        return true; 
+    }
+
     public Point[] GetC1Points() { return src_point_array; }
 
     public Point[] GetRecentC1Points() { return src_recent_array; }
@@ -167,6 +208,18 @@ public class Detector_CV_Controller : MonoBehaviour
         m_RawImage.transform.localScale = new Vector3(scale/4, scale/4, 0.0f);
         // m_RawImage.transform.position = new Vector3(scr_w/2, scr_h/2, 0.0f);
         // m_RawImage.transform.localScale = new Vector3(scale, scale, 0.0f);
+
+        m_TopImage1.SetNativeSize();
+        m_TopImage1.transform.position = new Vector3(5*scr_w/6, scr_h/6, 0.0f);
+        m_TopImage1.transform.localScale = new Vector3(scale/6, scale/6, 0.0f);
+
+        m_TopImage2.SetNativeSize();
+        m_TopImage2.transform.position = new Vector3(5*scr_w/6, scr_h/2, 0.0f);
+        m_TopImage2.transform.localScale = new Vector3(scale/6, scale/6, 0.0f);
+
+        m_TopImage3.SetNativeSize();
+        m_TopImage3.transform.position = new Vector3(5*scr_w/6, 5*scr_h/6, 0.0f);
+        m_TopImage3.transform.localScale = new Vector3(scale/6, scale/6, 0.0f);
     }
 
     void ArucoDetection() {
@@ -198,7 +251,8 @@ public class Detector_CV_Controller : MonoBehaviour
 
         // Check if have valid faces
         for (int i = 0; i < 3; i++) {
-            faceX_full[i] = check_faces(i); 
+            // faceX_full[i] = check_faces(i); 
+            faceX_full[i] = check_recent_faces(i); 
         }
 
         Core.flip(cached_initMat, outMat, 0);
@@ -223,7 +277,34 @@ public class Detector_CV_Controller : MonoBehaviour
     }
 
     void GetFaces() {
-        
+        for (int i = 0; i < 3; i++) { // i :: face count
+            if (faceX_full[i]) { // For each valid face
+                // Build Face Point Array
+                Point[] face_point_array = new Point[4]; 
+                for (int j = 0; j < 4; j++) { // j :: face point count
+                    int src_i = face_index[i, j];
+                    face_point_array[j] = src_point_array[src_i];
+                }
+
+                // Rectify and get the face texture
+                homoMat_array[i] = new Mat (480, 640, CvType.CV_8UC1);
+                Rectify(ref face_point_array, ref homoMat_array[i]);
+            }
+        }
+    }
+
+    void ShowFaces(Vector2 img_dim) {
+        Texture2D topTexture1 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
+        Utils.matToTexture2D(homoMat_array[0], topTexture1, false, 0);
+        m_TopImage1.texture = (Texture) topTexture1;
+
+        Texture2D topTexture2 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
+        Utils.matToTexture2D(homoMat_array[1], topTexture2, false, 0);
+        m_TopImage2.texture = (Texture) topTexture2;
+
+        Texture2D topTexture3 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
+        Utils.matToTexture2D(homoMat_array[2], topTexture3, false, 0);
+        m_TopImage3.texture = (Texture) topTexture3;
     }
 
     void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
@@ -266,6 +347,7 @@ public class Detector_CV_Controller : MonoBehaviour
 
                     // Get Rectified Textures
                     GetFaces(); 
+                    ShowFaces(img_dim); 
                 }
             }
 
