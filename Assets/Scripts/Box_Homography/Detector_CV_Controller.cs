@@ -37,8 +37,8 @@ public class Detector_CV_Controller : MonoBehaviour
     private List<Mat> corners = new List<Mat>();
     private Mat ids = new Mat(480, 640, CvType.CV_8UC1);
 
+    public bool spa_full = false; 
     private Point[] src_point_array = new Point[7];
-    private MatOfKeyPoint keyMat = new MatOfKeyPoint();
 
     private ScreenOrientation? m_CachedOrientation = null;
     private Texture2D m_Texture;
@@ -107,14 +107,29 @@ public class Detector_CV_Controller : MonoBehaviour
         // return (float) (1080.0 - (1080.0/320.0)*(y-80.0));
     }
 
-    // Detects Blobs with Detector Framework and stores Top-down view into cached_homoMat
-    void BlobDetection() {
-        SimpleBlobDetector detector = SimpleBlobDetector.create();
-        Core.flip(cached_initMat, imageMat, 0);
-        keyMat = new MatOfKeyPoint();
-        detector.detect(imageMat, keyMat);
+    int arucoTosrc(int a) {
+        if (a == 7) { return 4; }
+        else if (a == 6) { return 5; }
+        else if (a == 10) { return 6; }
+        else {return a; }
+    }
 
-        Features2d.drawKeypoints(imageMat, keyMat, outMat);
+    int srcToarcuo(int s) {
+        if (s == 4) { return 7; }
+        else if (s == 5) {return 6; }
+        else if (s == 6) {return 10; }
+        else {return s; }
+    }
+
+    int count_src_nulls() {
+        int acc = 0;
+        for (int i = 0; i < 7; i++)
+        {
+            if (src_point_array[i] == null) {
+                acc++; 
+            }
+        }
+        return (7 - acc); 
     }
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
@@ -152,14 +167,23 @@ public class Detector_CV_Controller : MonoBehaviour
             // Debug.LogFormat("{0}, {1}", corners[0].get(0,3)[0], corners[0].get(0,3)[1]); 
 
         for (int i = 0; i < corners.Count; i++) {
-            int idx = (int) (ids.get(i, 0)[0]);
-            int corner_idx = 3 - (idx % 4);
-            src_point_array[i] = new Point(corners[i].get(0,corner_idx)[0], corners[i].get(0,corner_idx)[1]);
-            Debug.LogFormat("src point [{0}]: {1} -> {2} -- {3}", i, idx, corner_idx, src_point_array[i]);
-            Imgproc.circle(cached_initMat, src_point_array[i], 10, new Scalar(255, 255, 0));
+            int aruco_id = (int) (ids.get(i, 0)[0]);
+            int src_i = arucoTosrc(aruco_id);
+            int corner_i = 3 - (aruco_id % 4);
+
+            // Store corner[i] into spa[src_i]
+            src_point_array[src_i] = new Point(corners[i].get(0, corner_i)[0], corners[i].get(0, corner_i)[1]);
+
+            // Display the corner as circle on outMat. 
+            Imgproc.circle(cached_initMat, src_point_array[src_i], 10, new Scalar(255, 255, 0));
         }
 
-        Debug.Log("AD: 154");
+        // Count non-null source points 
+        int markerCount = count_src_nulls();
+        Debug.LogFormat("markerCount = {0}", markerCount);
+        m_ImageInfo.text = string.Format("Number of markers detected: {0}", markerCount);
+        spa_full = (markerCount == 7);
+
         Core.flip(cached_initMat, outMat, 0);
     }
 
@@ -207,6 +231,11 @@ public class Detector_CV_Controller : MonoBehaviour
             Utils.matToTexture2D(outMat, m_Texture, false, 0);
         }
 
+        if (spa_full) {
+            // Homography shit
+            // Debug.Log(" ALL SRC FOUND");
+        }
+
         // Sets orientation of screen if necessary
         if (m_CachedOrientation == null || m_CachedOrientation != Screen.orientation)
         {
@@ -217,7 +246,7 @@ public class Detector_CV_Controller : MonoBehaviour
 
         m_RawImage.texture = (Texture) m_Texture;
 
-        m_ImageInfo.text = string.Format("Number of Blobs: {0}", ids.size());
+        // m_ImageInfo.text = string.Format("Number of Blobs: {0}", ids.size());
     }
 
     static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
