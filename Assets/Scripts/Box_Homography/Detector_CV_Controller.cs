@@ -37,8 +37,14 @@ public class Detector_CV_Controller : MonoBehaviour
     private List<Mat> corners = new List<Mat>();
     private Mat ids = new Mat(480, 640, CvType.CV_8UC1);
 
+    private int[,] face_index = { {3, 6, 4, 5}, {0, 1, 3, 6}, {6, 1, 5, 2} };
+
     public bool spa_full = false; 
+    private bool[] faceX_full = new bool[3]; 
+
     private Point[] src_point_array = new Point[7];
+    private Point[] src_recent_array = new Point[7];
+    private Point[] reg_point_array = new Point[4];
 
     private ScreenOrientation? m_CachedOrientation = null;
     private Texture2D m_Texture;
@@ -96,16 +102,9 @@ public class Detector_CV_Controller : MonoBehaviour
             m_ARCameraManager.frameReceived -= OnCameraFrameReceived;
     }
 
-    float CameraToPixelX(double x)
-    {
-        return (float) (3.4375 * x);
-    }
+    float CameraToPixelX(double x) { return (float) (3.4375 * x); }
 
-    float CameraToPixelY(double y)
-    {
-        return (float) (1080.0 - (3.375*(y - 80.0)));
-        // return (float) (1080.0 - (1080.0/320.0)*(y-80.0));
-    }
+    float CameraToPixelY(double y) { return (float) (1080.0 - (3.375*(y - 80.0))); }
 
     int arucoTosrc(int a) {
         if (a == 7) { return 4; }
@@ -131,6 +130,20 @@ public class Detector_CV_Controller : MonoBehaviour
         }
         return (7 - acc); 
     }
+    
+    bool check_faces(int face_i) {
+        for (int i = 0; i < 4; i++) {
+            int src_i = face_index[face_i, i]; 
+            if (src_point_array[src_i] == null) {
+                return false; 
+            }
+        }
+        return true; 
+    }
+
+    public Point[] GetC1Points() { return src_point_array; }
+
+    public Point[] GetRecentC1Points() { return src_recent_array; }
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
     {
@@ -160,19 +173,18 @@ public class Detector_CV_Controller : MonoBehaviour
         Dictionary dict = Aruco.getPredefinedDictionary(Aruco.DICT_4X4_1000);
         Aruco.detectMarkers(cached_initMat, dict, corners, ids);
         Aruco.drawDetectedMarkers(cached_initMat, corners, ids);
-
-            // Debug.LogFormat("{0}, {1}", corners[0].get(0,0)[0], corners[0].get(0,0)[1]); 
-            // Debug.LogFormat("{0}, {1}", corners[0].get(0,1)[0], corners[0].get(0,1)[1]); 
-            // Debug.LogFormat("{0}, {1}", corners[0].get(0,2)[0], corners[0].get(0,2)[1]); 
-            // Debug.LogFormat("{0}, {1}", corners[0].get(0,3)[0], corners[0].get(0,3)[1]); 
+        src_recent_array = new Point[7];
 
         for (int i = 0; i < corners.Count; i++) {
             int aruco_id = (int) (ids.get(i, 0)[0]);
             int src_i = arucoTosrc(aruco_id);
-            int corner_i = 3 - (aruco_id % 4);
+            int corner_i = aruco_id % 4;
 
             // Store corner[i] into spa[src_i]
             src_point_array[src_i] = new Point(corners[i].get(0, corner_i)[0], corners[i].get(0, corner_i)[1]);
+            src_recent_array[src_i] = new Point(corners[i].get(0, corner_i)[0], corners[i].get(0, corner_i)[1]);
+
+            Debug.LogFormat("aruco_id: {0} -- corner_i = {1}", aruco_id, corner_i);
 
             // Display the corner as circle on outMat. 
             Imgproc.circle(cached_initMat, src_point_array[src_i], 10, new Scalar(255, 255, 0));
@@ -184,7 +196,34 @@ public class Detector_CV_Controller : MonoBehaviour
         m_ImageInfo.text = string.Format("Number of markers detected: {0}", markerCount);
         spa_full = (markerCount == 7);
 
+        // Check if have valid faces
+        for (int i = 0; i < 3; i++) {
+            faceX_full[i] = check_faces(i); 
+        }
+
         Core.flip(cached_initMat, outMat, 0);
+    }
+
+    void Rectify(ref Point[] face_point_array, ref Mat cachedMat) {
+        reg_point_array[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
+        reg_point_array[1] = new Point(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT);
+        reg_point_array[2] = new Point(0.0, 0.0);
+        reg_point_array[3] = new Point(HOMOGRAPHY_WIDTH, 0.0);
+
+        MatOfPoint2f srcPoints = new MatOfPoint2f(face_point_array);
+        MatOfPoint2f regPoints = new MatOfPoint2f(reg_point_array);
+
+        // Debug.LogFormat("Rectify Face Points; {0} \n {1} \n {2} \n {3}", 
+        //     face_point_array[0], face_point_array[1], face_point_array[2], face_point_array[3]);
+
+        // Creating the H Matrix
+        Mat Homo_Mat = Calib3d.findHomography(srcPoints, regPoints);
+
+        Imgproc.warpPerspective(imageMat, cachedMat, Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
+    }
+
+    void GetFaces() {
+        
     }
 
     void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
@@ -224,6 +263,9 @@ public class Detector_CV_Controller : MonoBehaviour
 
                     // Detect reference points
                     ArucoDetection();
+
+                    // Get Rectified Textures
+                    GetFaces(); 
                 }
             }
 

@@ -72,7 +72,7 @@ EditorBuildSettings:
     path: Assets/Scenes/Box_Homography.unity
     guid: 5818f607718854bab8d69ed0c0f3e8a5
   - enabled: 1
-    path: Assets/Detector Homography.unity
+    path: Assets/Scenes/Detector Homography.unity
     guid: 882f7984dde664b3bab40abc934446ca
   m_configObjects:
     com.unity.xr.arkit.PlayerSettings: {fileID: 11400000, guid: 2d5fb8e61571b4e3897f221189089fd6,

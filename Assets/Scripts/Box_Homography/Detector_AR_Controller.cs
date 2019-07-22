@@ -42,12 +42,12 @@ public class Detector_AR_Controller : MonoBehaviour
     public static float DATA_SCALE = 0.05f;
     private TrackableId cached_trackableid;
 
-    private Vector3[] world_points = new Vector3[4];
+    private Vector3[] world_points = new Vector3[7];
 
-    private Point[] c1_scr_points = new Point[4];
-    private Point[] c2_scr_points = new Point[4];
+    private Point[] c1_scr_points = new Point[7];
+    private Point[] c2_scr_points = new Point[7];
 
-    private GameObject[] spawnedObjects = new GameObject[4];
+    private GameObject[] spawnedObjects = new GameObject[7];
 
     public Point[] GetScreenpoints(bool c1)
     {
@@ -67,7 +67,31 @@ public class Detector_AR_Controller : MonoBehaviour
         spawnedObjects[1] = Instantiate(m_PlacedPrefab, new Vector3(0.0f, 0.0f, 0.0f), new Quaternion(0.0f, 0.0f, 0.0f, 0.0f));
         spawnedObjects[2] = Instantiate(m_PlacedPrefab, new Vector3(0.0f, 0.0f, 0.0f), new Quaternion(0.0f, 0.0f, 0.0f, 0.0f));
         spawnedObjects[3] = Instantiate(m_PlacedPrefab, new Vector3(0.0f, 0.0f, 0.0f), new Quaternion(0.0f, 0.0f, 0.0f, 0.0f));
+        spawnedObjects[4] = Instantiate(m_PlacedPrefab, new Vector3(0.0f, 0.0f, 0.0f), new Quaternion(0.0f, 0.0f, 0.0f, 0.0f));
+        spawnedObjects[5] = Instantiate(m_PlacedPrefab, new Vector3(0.0f, 0.0f, 0.0f), new Quaternion(0.0f, 0.0f, 0.0f, 0.0f));
+        spawnedObjects[6] = Instantiate(m_PlacedPrefab, new Vector3(0.0f, 0.0f, 0.0f), new Quaternion(0.0f, 0.0f, 0.0f, 0.0f));
+    }
 
+    int count_c1_nulls() {
+        int acc = 0;
+        for (int i = 0; i < 7; i++)
+        {
+            if (c1_scr_points[i] == null) {
+                acc++; 
+            }
+        }
+        return (7 - acc); 
+    }
+
+    int count_world_nulls() {
+        int acc = 0; 
+        for (int i = 0; i < 7; i++)
+        {
+            if (world_points[i] == null) {
+                acc++; 
+            }
+        }
+        return (7 - acc); 
     }
 
     float PixelToCameraX(double x)
@@ -93,16 +117,17 @@ public class Detector_AR_Controller : MonoBehaviour
     void SetWorldPoints()
     {
         Detector_CV_Controller CV_Controller = GameObject.Find("CV_Controller").GetComponent<Detector_CV_Controller>();
-        // c1_scr_points = CV_Controller.GetC1Points();
+        c1_scr_points = CV_Controller.GetRecentC1Points();
 
-        // for (int i = 0; i < 4; i++)
-        // {
-        //     // Point mat_point = c1_points[i];
-        //     Vector2 screen_vec = new Vector2(CameraToPixelX(c1_scr_points[i].x), CameraToPixelY(c1_scr_points[i].y));
-        //     bool arRayBool = m_ARRaycastManager.Raycast(screen_vec, s_Hits, TrackableType.PlaneWithinPolygon);
-        //     world_points[i] = s_Hits[0].pose.position; 
-        //     spawnedObjects[i].transform.position = world_points[i];
-        // }
+        for (int i = 0; i < 7; i++) {
+            if (c1_scr_points[i] != null) {
+                Vector2 screen_vec = 
+                    new Vector2(CameraToPixelX(c1_scr_points[i].x), CameraToPixelY(c1_scr_points[i].y));
+                bool arRayBool = m_ARRaycastManager.Raycast(screen_vec, s_Hits, TrackableType.PlaneWithinPolygon);
+                world_points[i] = s_Hits[0].pose.position; 
+                spawnedObjects[i].transform.position = world_points[i];
+            }
+        }
     }
 
     // Sets the C2 screen point values from world points
@@ -110,10 +135,12 @@ public class Detector_AR_Controller : MonoBehaviour
     {
         Camera cam = GameObject.Find("AR Camera").GetComponent<Camera>();
 
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 7; i++)
         {
-            Vector3 scr_point = cam.WorldToScreenPoint(world_points[i]);
-            c2_scr_points[i] = new Point(PixelToCameraX(scr_point.x), PixelToCameraY(scr_point.y));
+            if (world_points[i] != null) {
+                Vector3 scr_point = cam.WorldToScreenPoint(world_points[i]);
+                c2_scr_points[i] = new Point(PixelToCameraX(scr_point.x), PixelToCameraY(scr_point.y));
+            }
         }
     }
 
@@ -126,7 +153,8 @@ public class Detector_AR_Controller : MonoBehaviour
             if (touch.phase == TouchPhase.Began)
             {
                 // Cache worldpoints 
-                // SetWorldPoints(); 
+                SetWorldPoints(); 
+                Debug.LogFormat("c1 count: {0} -- world count: {1} ", count_c1_nulls(), count_world_nulls());
             }
         }
 

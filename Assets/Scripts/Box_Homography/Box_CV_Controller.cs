@@ -125,16 +125,9 @@ public class Box_CV_Controller : MonoBehaviour
             m_ARCameraManager.frameReceived -= OnCameraFrameReceived;
     }
 
-    float CameraToPixelX(double x)
-    {
-        return (float) (3.4375 * x);
-    }
+    float CameraToPixelX(double x) { return (float) (3.4375 * x); }
 
-    float CameraToPixelY(double y)
-    {
-        return (float) (1080.0 - (3.375*(y - 80.0)));
-        // return (float) (1080.0 - (1080.0/320.0)*(y-80.0));
-    }
+    float CameraToPixelY(double y){ return (float) (1080.0 - (3.375*(y - 80.0))); }
 
     // Returns scrPointArray for public access
     public Point[] GetC1Points()
