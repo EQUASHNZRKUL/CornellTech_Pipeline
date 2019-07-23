@@ -275,8 +275,10 @@ public class Detector_CV_Controller : MonoBehaviour
             Debug.Log("AD: done");
     }
 
-    void Rectify(ref Point[] face_point_array, ref Mat cachedMat) {
+    void Rectify(ref Point[] face_point_array, int i) {
             Debug.Log("R: Starting");
+        homoMat_array[i] = new Mat (480, 640, CvType.CV_8UC1);
+        
         reg_point_array[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
         reg_point_array[1] = new Point(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT);
         reg_point_array[2] = new Point(0.0, 0.0);
@@ -297,15 +299,15 @@ public class Detector_CV_Controller : MonoBehaviour
 
             Debug.Log("R: H Matrix Instantiated");
 
-        Imgproc.warpPerspective(imageMat, cachedMat, Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
+        Imgproc.warpPerspective(cached_initMat, homoMat_array[i], Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
 
             Debug.Log("R: image rectified");
     }
 
     void GetFaces() {
         for (int i = 0; i < 3; i++) { // i :: face count
-            Debug.LogFormat("GF: Starting -- i:{0}; valid:{1}", i, faceX_full[i]);
-            if (faceX_full[i]) { // For each valid face
+            Debug.LogFormat("GF: Starting -- i:{0}; valid:{1}", i, faceX_recent_full[i]);
+            if (faceX_recent_full[i]) { // For each valid face
                 // Build Face Point Array
                 Point[] face_point_array = new Point[4]; 
                 for (int j = 0; j < 4; j++) { // j :: face point count
@@ -315,35 +317,48 @@ public class Detector_CV_Controller : MonoBehaviour
                     Debug.Log("GF: FacePointArray populated");
 
                 // Rectify and get the face texture
-                homoMat_array[i] = new Mat (480, 640, CvType.CV_8UC1);
                     Debug.Log("GF: homoMat_array[i] instantiated");
-                Rectify(ref face_point_array, ref homoMat_array[i]);
+                Rectify(ref face_point_array, i);
             }
         }
             Debug.Log("GF: Ending");
     }
 
     void ShowFaces(Vector2 img_dim) {
-            Debug.Log("SF: Starting");
-        if (faceX_full[0]) {
+        int scr_w = Screen.width;
+        int scr_h = Screen.height; 
+
+        float img_w = img_dim.x;
+        float img_h = img_dim.y;
+
+        float w_ratio = (float)scr_w/img_w;
+        float h_ratio = (float)scr_h/img_h;
+        float scale = Math.Max(w_ratio, h_ratio);
+
+        if (faceX_recent_full[0]) {
             Debug.Log("SF: 1st face enter");
             Texture2D topTexture1 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
             Utils.matToTexture2D(homoMat_array[0], topTexture1, false, 0);
             m_TopImage1.texture = (Texture) topTexture1;
         }
             Debug.Log("SF: 1st face done");
-        if (faceX_full[1]) {
+        if (faceX_recent_full[1]) {
             Debug.Log("SF: 2nd face enter");
             Texture2D topTexture2 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
             Utils.matToTexture2D(homoMat_array[1], topTexture2, false, 0);
-            m_TopImage1.texture = (Texture) topTexture2;
+            m_TopImage2.texture = (Texture) topTexture2;
+
+            Debug.Log("SF: Config TopImage2");
+            m_TopImage2.SetNativeSize();
+            m_TopImage2.transform.position = new Vector3(5*scr_w/6, scr_h/2, 0.0f);
+            m_TopImage2.transform.localScale = new Vector3(scale/6, scale/6, 0.0f);
         }
             Debug.Log("SF: 2nd face done");
-        if (faceX_full[2]) {
+        if (faceX_recent_full[2]) {
             Debug.Log("SF: 3rd face enter");
             Texture2D topTexture3 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
             Utils.matToTexture2D(homoMat_array[2], topTexture3, false, 0);
-            m_TopImage1.texture = (Texture) topTexture3;
+            m_TopImage3.texture = (Texture) topTexture3;
         }
             Debug.Log("SF: Ending");
     }
