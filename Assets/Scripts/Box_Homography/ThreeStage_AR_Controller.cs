@@ -49,13 +49,11 @@ public class ThreeStage_AR_Controller : MonoBehaviour
 
     private GameObject[] spawnedObjects = new GameObject[7];
 
-    public Point[] GetScreenpoints(bool c1)
-    {
-        if (c1)
-            return c1_scr_points;
-        else 
-            return c2_scr_points;
-    }
+    public Point[] GetScreenpoints() { return c2_scr_points; }
+
+    // public Vector3[] GetWorldPoints() {
+    //     return world_points;
+    // }
 
     void Awake()
     {
@@ -94,6 +92,10 @@ public class ThreeStage_AR_Controller : MonoBehaviour
         return (7 - acc); 
     }
 
+    public bool WorldFull() {
+        return (count_world_nulls() == 0);
+    }
+
     float PixelToCameraX(double x)
     {
         return (float) ((640.0/2200.0) * x);
@@ -114,7 +116,7 @@ public class ThreeStage_AR_Controller : MonoBehaviour
         return (float) (1080.0 - (3.375*(y - 80.0)));
     }
 
-    void SetWorldPoints()
+    public void SetWorldPoints()
     {
         Debug.Log("SWP: 119");
         ThreeStage_CV_Controller CV_Controller = GameObject.Find("CV_Controller").GetComponent<ThreeStage_CV_Controller>();
@@ -136,7 +138,7 @@ public class ThreeStage_AR_Controller : MonoBehaviour
     }
 
     // Sets the C2 screen point values from world points
-    void SetScreenPoints()
+    public void SetScreenPoints()
     {
         Camera cam = GameObject.Find("AR Camera").GetComponent<Camera>();
 
@@ -152,17 +154,17 @@ public class ThreeStage_AR_Controller : MonoBehaviour
     void Update()
     {
         // TOUCH SECTION
-        if (Input.touchCount > 0)
-        {
-            Touch touch = Input.GetTouch(0);
-            if (touch.phase == TouchPhase.Began)
-            {
-                // Cache worldpoints 
-                Debug.Log("U:156");
-                SetWorldPoints(); 
-                Debug.LogFormat("c1 count: {0} -- world count: {1} ", count_c1_nulls(), count_world_nulls());
-            }
-        }
+        // if (Input.touchCount > 0)
+        // {
+        //     Touch touch = Input.GetTouch(0);
+        //     if (touch.phase == TouchPhase.Began)
+        //     {
+        //         // Cache worldpoints 
+        //         SetWorldPoints(); 
+        //         Debug.LogFormat("c1 count: {0} -- world count: {1} ", count_c1_nulls(), count_world_nulls());
+        //         SetScreenPoints(); 
+        //     }
+        // }
 
         // FRAME SECTION
         // SetScreenPoints();

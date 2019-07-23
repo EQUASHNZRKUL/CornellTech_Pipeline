@@ -51,6 +51,7 @@ public class ThreeStage_CV_Controller : MonoBehaviour
     private Point[] src_point_array = new Point[7];
     private Point[] src_recent_array = new Point[7];
     private Point[] reg_point_array = new Point[4];
+    private Point[] proj_point_array = new Point[7];
 
     private ScreenOrientation? m_CachedOrientation = null;
     private Texture2D m_Texture;
@@ -189,7 +190,6 @@ public class ThreeStage_CV_Controller : MonoBehaviour
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
     {
-        Debug.Log("CRIIS: Entering");
         Vector2 ScreenDimension = new Vector2(Screen.width, Screen.height);
         int scr_w = Screen.width;
         int scr_h = Screen.height; 
@@ -201,17 +201,12 @@ public class ThreeStage_CV_Controller : MonoBehaviour
         float h_ratio = (float)scr_h/img_h;
         float scale = Math.Max(w_ratio, h_ratio);
 
-        Debug.LogFormat("Screen Dimensions: {0} x {1}\n Image Dimensions: {2} x {3}\n Ratios: {4}, {5}", 
-            scr_w, scr_h, img_w, img_h, w_ratio, h_ratio);
-        Debug.LogFormat("RawImage Rect: {0}", m_RawImage.uvRect);
-
         m_RawImage.SetNativeSize();
         m_RawImage.transform.position = new Vector3(scr_w/4, scr_h/4, 0.0f);
         m_RawImage.transform.localScale = new Vector3(scale/4, scale/4, 0.0f);
         // m_RawImage.transform.position = new Vector3(scr_w/2, scr_h/2, 0.0f);
         // m_RawImage.transform.localScale = new Vector3(scale, scale, 0.0f);
 
-        Debug.Log("CRIIS: TopImages");
         m_TopImage1.SetNativeSize();
         m_TopImage1.transform.position = new Vector3(5*scr_w/6, scr_h/6, 0.0f);
         m_TopImage1.transform.localScale = new Vector3(scale/6, scale/6, 0.0f);
@@ -223,14 +218,12 @@ public class ThreeStage_CV_Controller : MonoBehaviour
         m_TopImage3.SetNativeSize();
         m_TopImage3.transform.position = new Vector3(5*scr_w/6, 5*scr_h/6, 0.0f);
         m_TopImage3.transform.localScale = new Vector3(scale/6, scale/6, 0.0f);
-        Debug.Log("CRIIS: TopImages done");
     }
 
     void ArucoDetection() {
         Dictionary dict = Aruco.getPredefinedDictionary(Aruco.DICT_4X4_1000);
         Aruco.detectMarkers(cached_initMat, dict, corners, ids);
         Aruco.drawDetectedMarkers(cached_initMat, corners, ids);
-            Debug.Log("AD: Markers Detected");
         src_recent_array = new Point[7];
 
         for (int i = 0; i < corners.Count; i++) {
@@ -242,18 +235,11 @@ public class ThreeStage_CV_Controller : MonoBehaviour
             src_point_array[src_i] = new Point(corners[i].get(0, corner_i)[0], corners[i].get(0, corner_i)[1]);
             src_recent_array[src_i] = new Point(corners[i].get(0, corner_i)[0], corners[i].get(0, corner_i)[1]);
 
-            Debug.LogFormat("aruco_id: {0}; corner: {1}; src_i: {2}", aruco_id, src_point_array[src_i], src_i);
-
             // Display the corner as circle on outMat. 
-            Imgproc.circle(cached_initMat, src_point_array[src_i], 10, new Scalar(255, 255, 0));
+            // Imgproc.circle(cached_initMat, src_point_array[src_i], 5, new Scalar(255, 0, 255));
         }
 
-            Debug.Log("AD: src_point_array and recent populated");
-
         // Count non-null source points 
-        int markerCount = count_src_nulls();
-        Debug.LogFormat("AD: markerCount = {0}", markerCount);
-        m_ImageInfo.text = string.Format("Number of markers detected: {0}", markerCount);
         spa_full = (markerCount == 7);
 
         // Check if have valid faces
@@ -261,22 +247,14 @@ public class ThreeStage_CV_Controller : MonoBehaviour
             // faceX_full[i] = check_faces(i); 
             faceX_full[i] = check_faces(i); 
         }
-            Debug.LogFormat("AD: full faces: 1-{0}, 2-{1}, 3-{2}", 
-                faceX_full[0], faceX_full[1], faceX_full[2]);
 
         for (int i = 0; i < 3; i++) {
             // faceX_full[i] = check_faces(i); 
             faceX_recent_full[i] = check_recent_faces(i); 
         }
-            Debug.LogFormat("AD: recent full faces: 1-{0}, 2-{1}, 3-{2}", 
-                faceX_recent_full[0], faceX_recent_full[1], faceX_recent_full[2]);
-
-        Core.flip(cached_initMat, outMat, 0);
-            Debug.Log("AD: done");
     }
 
     void Rectify(ref Point[] face_point_array, int i) {
-            Debug.Log("R: Starting");
         homoMat_array[i] = new Mat (480, 640, CvType.CV_8UC1);
         
         reg_point_array[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
@@ -284,12 +262,8 @@ public class ThreeStage_CV_Controller : MonoBehaviour
         reg_point_array[2] = new Point(0.0, 0.0);
         reg_point_array[3] = new Point(HOMOGRAPHY_WIDTH, 0.0);
         
-            Debug.Log("R: reg_point_array populated");
-
         MatOfPoint2f srcPoints = new MatOfPoint2f(face_point_array);
         MatOfPoint2f regPoints = new MatOfPoint2f(reg_point_array);
-
-            // Debug.Log("R: src and reg points instantiated");
 
             Debug.LogFormat("Rectify Face Points; {0} \n {1} \n {2} \n {3}", 
                 face_point_array[0], face_point_array[1], face_point_array[2], face_point_array[3]);
@@ -297,31 +271,22 @@ public class ThreeStage_CV_Controller : MonoBehaviour
         // Creating the H Matrix
         Mat Homo_Mat = Calib3d.findHomography(srcPoints, regPoints);
 
-            Debug.Log("R: H Matrix Instantiated");
-
         Imgproc.warpPerspective(cached_initMat, homoMat_array[i], Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
-
-            Debug.Log("R: image rectified");
     }
 
-    void GetFaces() {
+    void GetFaces(ref Point[] source_points) {
         for (int i = 0; i < 3; i++) { // i :: face count
-            Debug.LogFormat("GF: Starting -- i:{0}; valid:{1}", i, faceX_recent_full[i]);
-            if (faceX_recent_full[i]) { // For each valid face
+            if (faceX_full[i]) { // For each valid face
                 // Build Face Point Array
                 Point[] face_point_array = new Point[4]; 
                 for (int j = 0; j < 4; j++) { // j :: face point count
                     int src_i = face_index[i, j];
-                    face_point_array[j] = src_point_array[src_i];
+                    face_point_array[j] = source_points[src_i];
                 }
-                    Debug.Log("GF: FacePointArray populated");
-
                 // Rectify and get the face texture
-                    Debug.Log("GF: homoMat_array[i] instantiated");
                 Rectify(ref face_point_array, i);
             }
         }
-            Debug.Log("GF: Ending");
     }
 
     void ShowFaces(Vector2 img_dim) {
@@ -335,32 +300,41 @@ public class ThreeStage_CV_Controller : MonoBehaviour
         float h_ratio = (float)scr_h/img_h;
         float scale = Math.Max(w_ratio, h_ratio);
 
-        if (faceX_recent_full[0]) {
-            Debug.Log("SF: 1st face enter");
+        if (faceX_full[0]) {
             Texture2D topTexture1 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
             Utils.matToTexture2D(homoMat_array[0], topTexture1, false, 0);
             m_TopImage1.texture = (Texture) topTexture1;
+
+            m_TopImage1.SetNativeSize();
+            m_TopImage1.transform.position = new Vector3(5*scr_w/6, scr_h/6, 0.0f);
+            m_TopImage1.transform.localScale = new Vector3(scale/6, scale/6, 0.0f);
         }
-            Debug.Log("SF: 1st face done");
-        if (faceX_recent_full[1]) {
-            Debug.Log("SF: 2nd face enter");
+        if (faceX_full[1]) {
             Texture2D topTexture2 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
             Utils.matToTexture2D(homoMat_array[1], topTexture2, false, 0);
             m_TopImage2.texture = (Texture) topTexture2;
 
-            Debug.Log("SF: Config TopImage2");
             m_TopImage2.SetNativeSize();
             m_TopImage2.transform.position = new Vector3(5*scr_w/6, scr_h/2, 0.0f);
             m_TopImage2.transform.localScale = new Vector3(scale/6, scale/6, 0.0f);
         }
-            Debug.Log("SF: 2nd face done");
-        if (faceX_recent_full[2]) {
-            Debug.Log("SF: 3rd face enter");
+        if (faceX_full[2]) {
             Texture2D topTexture3 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
             Utils.matToTexture2D(homoMat_array[2], topTexture3, false, 0);
             m_TopImage3.texture = (Texture) topTexture3;
+
+            m_TopImage3.SetNativeSize();
+            m_TopImage3.transform.position = new Vector3(5*scr_w/6, 5*scr_h/6, 0.0f);
+            m_TopImage3.transform.localScale = new Vector3(scale/6, scale/6, 0.0f);
         }
-            Debug.Log("SF: Ending");
+    }
+
+    void DrawScreenPoints(ThreeStage_AR_Controller ARC) {
+        Point[] c2_scrpoints = ARC.GetScreenpoints();
+
+        for (int i = 0; i < 7; i++) {
+            Imgproc.circle(cached_initMat, c2_scrpoints[i], 10, new Scalar(255, 255, 0));
+        }
     }
 
     void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
@@ -398,14 +372,25 @@ public class ThreeStage_CV_Controller : MonoBehaviour
                     // Cache original image
                     Utils.copyToMat(greyPtr, cached_initMat);
 
-                    Debug.Log("OFCR: ArucoDetection()");
-                    // Detect reference points
-                    ArucoDetection();
+                    ThreeStage_AR_Controller ARC = m_ARSessionManager.GetComponent<ThreeStage_AR_Controller>();
 
-                    Debug.Log("OFCR: GetFaces()");
-                    // Get Rectified Textures
-                    GetFaces(); 
-                    ShowFaces(img_dim); 
+                    if (!ARC.WorldFull()) { // Stage 1: 
+                        m_ImageInfo.text = string.Format("Number of markers detected: {0}", count_src_nulls());
+                        ArucoDetection();
+
+                        ARC.SetWorldPoints();
+                        ARC.SetScreenPoints();
+
+                        DrawScreenPoints(ARC);
+                    }
+                    else { // Stage 2: 
+                        m_ImageInfo.text = "Finding Faces";
+                        proj_point_array = ARC.GetScreenpoints();
+                        GetFaces(ref proj_point_array);
+                        ShowFaces(img_dim);
+                    }
+                    
+                    Core.flip(cached_initMat, outMat, 0);
                 }
             }
 
@@ -415,7 +400,6 @@ public class ThreeStage_CV_Controller : MonoBehaviour
 
         if (spa_full) {
             // Homography shit
-            // Debug.Log(" ALL SRC FOUND");
         }
 
         // Sets orientation of screen if necessary
