@@ -45,6 +45,7 @@ public class Detector_CV_Controller : MonoBehaviour
     // Populated booleans
     public bool spa_full = false; 
     private bool[] faceX_full = new bool[3]; 
+    private bool[] faceX_recent_full = new bool[3]; 
 
     // Point Arrays
     private Point[] src_point_array = new Point[7];
@@ -188,6 +189,7 @@ public class Detector_CV_Controller : MonoBehaviour
 
     void ConfigureRawImageInSpace(Vector2 img_dim)
     {
+        Debug.Log("CRIIS: Entering");
         Vector2 ScreenDimension = new Vector2(Screen.width, Screen.height);
         int scr_w = Screen.width;
         int scr_h = Screen.height; 
@@ -209,6 +211,7 @@ public class Detector_CV_Controller : MonoBehaviour
         // m_RawImage.transform.position = new Vector3(scr_w/2, scr_h/2, 0.0f);
         // m_RawImage.transform.localScale = new Vector3(scale, scale, 0.0f);
 
+        Debug.Log("CRIIS: TopImages");
         m_TopImage1.SetNativeSize();
         m_TopImage1.transform.position = new Vector3(5*scr_w/6, scr_h/6, 0.0f);
         m_TopImage1.transform.localScale = new Vector3(scale/6, scale/6, 0.0f);
@@ -220,12 +223,14 @@ public class Detector_CV_Controller : MonoBehaviour
         m_TopImage3.SetNativeSize();
         m_TopImage3.transform.position = new Vector3(5*scr_w/6, 5*scr_h/6, 0.0f);
         m_TopImage3.transform.localScale = new Vector3(scale/6, scale/6, 0.0f);
+        Debug.Log("CRIIS: TopImages done");
     }
 
     void ArucoDetection() {
         Dictionary dict = Aruco.getPredefinedDictionary(Aruco.DICT_4X4_1000);
         Aruco.detectMarkers(cached_initMat, dict, corners, ids);
         Aruco.drawDetectedMarkers(cached_initMat, corners, ids);
+            Debug.Log("AD: Markers Detected");
         src_recent_array = new Point[7];
 
         for (int i = 0; i < corners.Count; i++) {
@@ -237,47 +242,69 @@ public class Detector_CV_Controller : MonoBehaviour
             src_point_array[src_i] = new Point(corners[i].get(0, corner_i)[0], corners[i].get(0, corner_i)[1]);
             src_recent_array[src_i] = new Point(corners[i].get(0, corner_i)[0], corners[i].get(0, corner_i)[1]);
 
-            Debug.LogFormat("aruco_id: {0} -- corner_i = {1}", aruco_id, corner_i);
+            Debug.LogFormat("aruco_id: {0}; corner: {1}; src_i: {2}", aruco_id, src_point_array[src_i], src_i);
 
             // Display the corner as circle on outMat. 
             Imgproc.circle(cached_initMat, src_point_array[src_i], 10, new Scalar(255, 255, 0));
         }
 
+            Debug.Log("AD: src_point_array and recent populated");
+
         // Count non-null source points 
         int markerCount = count_src_nulls();
-        Debug.LogFormat("markerCount = {0}", markerCount);
+        Debug.LogFormat("AD: markerCount = {0}", markerCount);
         m_ImageInfo.text = string.Format("Number of markers detected: {0}", markerCount);
         spa_full = (markerCount == 7);
 
         // Check if have valid faces
         for (int i = 0; i < 3; i++) {
             // faceX_full[i] = check_faces(i); 
-            faceX_full[i] = check_recent_faces(i); 
+            faceX_full[i] = check_faces(i); 
         }
+            Debug.LogFormat("AD: full faces: 1-{0}, 2-{1}, 3-{2}", 
+                faceX_full[0], faceX_full[1], faceX_full[2]);
+
+        for (int i = 0; i < 3; i++) {
+            // faceX_full[i] = check_faces(i); 
+            faceX_recent_full[i] = check_recent_faces(i); 
+        }
+            Debug.LogFormat("AD: recent full faces: 1-{0}, 2-{1}, 3-{2}", 
+                faceX_recent_full[0], faceX_recent_full[1], faceX_recent_full[2]);
 
         Core.flip(cached_initMat, outMat, 0);
+            Debug.Log("AD: done");
     }
 
     void Rectify(ref Point[] face_point_array, ref Mat cachedMat) {
+            Debug.Log("R: Starting");
         reg_point_array[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
         reg_point_array[1] = new Point(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT);
         reg_point_array[2] = new Point(0.0, 0.0);
         reg_point_array[3] = new Point(HOMOGRAPHY_WIDTH, 0.0);
+        
+            Debug.Log("R: reg_point_array populated");
 
         MatOfPoint2f srcPoints = new MatOfPoint2f(face_point_array);
         MatOfPoint2f regPoints = new MatOfPoint2f(reg_point_array);
 
-        // Debug.LogFormat("Rectify Face Points; {0} \n {1} \n {2} \n {3}", 
-        //     face_point_array[0], face_point_array[1], face_point_array[2], face_point_array[3]);
+            // Debug.Log("R: src and reg points instantiated");
+
+            Debug.LogFormat("Rectify Face Points; {0} \n {1} \n {2} \n {3}", 
+                face_point_array[0], face_point_array[1], face_point_array[2], face_point_array[3]);
 
         // Creating the H Matrix
         Mat Homo_Mat = Calib3d.findHomography(srcPoints, regPoints);
 
+            Debug.Log("R: H Matrix Instantiated");
+
         Imgproc.warpPerspective(imageMat, cachedMat, Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
+
+            Debug.Log("R: image rectified");
     }
 
     void GetFaces() {
         for (int i = 0; i < 3; i++) { // i :: face count
+            Debug.LogFormat("GF: Starting -- i:{0}; valid:{1}", i, faceX_full[i]);
             if (faceX_full[i]) { // For each valid face
                 // Build Face Point Array
                 Point[] face_point_array = new Point[4]; 
@@ -285,26 +312,40 @@ public class Detector_CV_Controller : MonoBehaviour
                     int src_i = face_index[i, j];
                     face_point_array[j] = src_point_array[src_i];
                 }
+                    Debug.Log("GF: FacePointArray populated");
 
                 // Rectify and get the face texture
                 homoMat_array[i] = new Mat (480, 640, CvType.CV_8UC1);
+                    Debug.Log("GF: homoMat_array[i] instantiated");
                 Rectify(ref face_point_array, ref homoMat_array[i]);
             }
         }
+            Debug.Log("GF: Ending");
     }
 
     void ShowFaces(Vector2 img_dim) {
-        Texture2D topTexture1 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
-        Utils.matToTexture2D(homoMat_array[0], topTexture1, false, 0);
-        m_TopImage1.texture = (Texture) topTexture1;
-
-        Texture2D topTexture2 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
-        Utils.matToTexture2D(homoMat_array[1], topTexture2, false, 0);
-        m_TopImage2.texture = (Texture) topTexture2;
-
-        Texture2D topTexture3 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
-        Utils.matToTexture2D(homoMat_array[2], topTexture3, false, 0);
-        m_TopImage3.texture = (Texture) topTexture3;
+            Debug.Log("SF: Starting");
+        if (faceX_full[0]) {
+            Debug.Log("SF: 1st face enter");
+            Texture2D topTexture1 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
+            Utils.matToTexture2D(homoMat_array[0], topTexture1, false, 0);
+            m_TopImage1.texture = (Texture) topTexture1;
+        }
+            Debug.Log("SF: 1st face done");
+        if (faceX_full[1]) {
+            Debug.Log("SF: 2nd face enter");
+            Texture2D topTexture2 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
+            Utils.matToTexture2D(homoMat_array[1], topTexture2, false, 0);
+            m_TopImage1.texture = (Texture) topTexture2;
+        }
+            Debug.Log("SF: 2nd face done");
+        if (faceX_full[2]) {
+            Debug.Log("SF: 3rd face enter");
+            Texture2D topTexture3 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
+            Utils.matToTexture2D(homoMat_array[2], topTexture3, false, 0);
+            m_TopImage1.texture = (Texture) topTexture3;
+        }
+            Debug.Log("SF: Ending");
     }
 
     void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
@@ -342,9 +383,11 @@ public class Detector_CV_Controller : MonoBehaviour
                     // Cache original image
                     Utils.copyToMat(greyPtr, cached_initMat);
 
+                    Debug.Log("OFCR: ArucoDetection()");
                     // Detect reference points
                     ArucoDetection();
 
+                    Debug.Log("OFCR: GetFaces()");
                     // Get Rectified Textures
                     GetFaces(); 
                     ShowFaces(img_dim); 

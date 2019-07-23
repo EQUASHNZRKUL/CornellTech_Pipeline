@@ -116,16 +116,21 @@ public class Detector_AR_Controller : MonoBehaviour
 
     void SetWorldPoints()
     {
+        Debug.Log("SWP: 119");
         Detector_CV_Controller CV_Controller = GameObject.Find("CV_Controller").GetComponent<Detector_CV_Controller>();
         c1_scr_points = CV_Controller.GetRecentC1Points();
 
+        Debug.Log("SWP: 123");
         for (int i = 0; i < 7; i++) {
             if (c1_scr_points[i] != null) {
+                Debug.LogFormat("SWP: Entering scr_rec[{0}]", i);
                 Vector2 screen_vec = 
                     new Vector2(CameraToPixelX(c1_scr_points[i].x), CameraToPixelY(c1_scr_points[i].y));
                 bool arRayBool = m_ARRaycastManager.Raycast(screen_vec, s_Hits, TrackableType.PlaneWithinPolygon);
-                world_points[i] = s_Hits[0].pose.position; 
-                spawnedObjects[i].transform.position = world_points[i];
+                if (arRayBool) {
+                    world_points[i] = s_Hits[0].pose.position; 
+                    spawnedObjects[i].transform.position = world_points[i];
+                }
             }
         }
     }
@@ -153,6 +158,7 @@ public class Detector_AR_Controller : MonoBehaviour
             if (touch.phase == TouchPhase.Began)
             {
                 // Cache worldpoints 
+                Debug.Log("U:156");
                 SetWorldPoints(); 
                 Debug.LogFormat("c1 count: {0} -- world count: {1} ", count_c1_nulls(), count_world_nulls());
             }
