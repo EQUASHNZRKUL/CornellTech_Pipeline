@@ -51,10 +51,6 @@ public class ThreeStage_AR_Controller : MonoBehaviour
 
     public Point[] GetScreenpoints() { return c2_scr_points; }
 
-    // public Vector3[] GetWorldPoints() {
-    //     return world_points;
-    // }
-
     void Awake()
     {
         Debug.Log("StartTest");
@@ -81,7 +77,7 @@ public class ThreeStage_AR_Controller : MonoBehaviour
         return (7 - acc); 
     }
 
-    int count_world_nulls() {
+    public int count_world_nulls() {
         int acc = 0; 
         for (int i = 0; i < 7; i++)
         {
@@ -89,32 +85,18 @@ public class ThreeStage_AR_Controller : MonoBehaviour
                 acc++; 
             }
         }
-        return (7 - acc); 
+        return acc; 
     }
 
-    public bool WorldFull() {
-        return (count_world_nulls() == 0);
-    }
+    public bool WorldFull() { return (count_world_nulls() == 0); }
 
-    float PixelToCameraX(double x)
-    {
-        return (float) ((640.0/2200.0) * x);
-    }
+    float PixelToCameraX(double x) { return (float) ((640.0/2200.0) * x); }
 
-    float PixelToCameraY(double y)
-    {
-        return (float) ((320.0/1080.0)*(1080.0 - y) + 80.0);
-    }
+    float PixelToCameraY(double y) { return (float) ((320.0/1080.0)*(1080.0 - y) + 80.0); }
 
-    float CameraToPixelX(double x)
-    {
-        return (float) (3.4375 * x);
-    }
+    float CameraToPixelX(double x) { return (float) (3.4375 * x); }
 
-    float CameraToPixelY(double y)
-    {
-        return (float) (1080.0 - (3.375*(y - 80.0)));
-    }
+    float CameraToPixelY(double y) { return (float) (1080.0 - (3.375*(y - 80.0))); }
 
     public void SetWorldPoints()
     {

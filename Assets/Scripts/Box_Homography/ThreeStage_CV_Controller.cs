@@ -226,6 +226,8 @@ public class ThreeStage_CV_Controller : MonoBehaviour
         Aruco.drawDetectedMarkers(cached_initMat, corners, ids);
         src_recent_array = new Point[7];
 
+        int markerCount = count_src_nulls();
+
         for (int i = 0; i < corners.Count; i++) {
             int aruco_id = (int) (ids.get(i, 0)[0]);
             int src_i = arucoTosrc(aruco_id);
@@ -374,8 +376,10 @@ public class ThreeStage_CV_Controller : MonoBehaviour
 
                     ThreeStage_AR_Controller ARC = m_ARSessionManager.GetComponent<ThreeStage_AR_Controller>();
 
-                    if (!ARC.WorldFull()) { // Stage 1: 
-                        m_ImageInfo.text = string.Format("Number of markers detected: {0}", count_src_nulls());
+                    // if (!ARC.WorldFull()) { // Stage 1: 
+                    if (!spa_full) { // Stage 1: 
+                        m_ImageInfo.text = string.Format("Number of markers detected: {0} \n world_nulls {1}", 
+                            count_src_nulls(), ARC.count_world_nulls());
                         ArucoDetection();
 
                         ARC.SetWorldPoints();
@@ -384,8 +388,12 @@ public class ThreeStage_CV_Controller : MonoBehaviour
                         DrawScreenPoints(ARC);
                     }
                     else { // Stage 2: 
-                        m_ImageInfo.text = "Finding Faces";
+                        m_ImageInfo.text = String.Format("world_nulls: {0}", ARC.count_world_nulls());
+                        ARC.SetScreenPoints();
+                        DrawScreenPoints(ARC);
+                        
                         proj_point_array = ARC.GetScreenpoints();
+
                         GetFaces(ref proj_point_array);
                         ShowFaces(img_dim);
                     }
