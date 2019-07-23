@@ -38,6 +38,7 @@ public class ThreeStage_CV_Controller : MonoBehaviour
     private List<Mat> corners = new List<Mat>();
     private Mat ids = new Mat(480, 640, CvType.CV_8UC1);
     private Mat[] rectMat_array = new Mat[3];
+    private Mat[] cached_rectMat_array = new Mat[3];
     private Mat[] homoMat_array = new Mat[3];
 
     // Face corner indices for each face
@@ -257,7 +258,7 @@ public class ThreeStage_CV_Controller : MonoBehaviour
         }
     }
 
-    void Rectify(ref Point[] face_point_array, int i) {
+    void Rectify(ref Point[] face_point_array, int i, bool touch_bool) {
         rectMat_array[i] = new Mat (480, 640, CvType.CV_8UC1);
         
         reg_point_array[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
@@ -275,9 +276,12 @@ public class ThreeStage_CV_Controller : MonoBehaviour
         Mat Homo_Mat = Calib3d.findHomography(srcPoints, regPoints);
 
         Imgproc.warpPerspective(cached_initMat, rectMat_array[i], Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
+        if (touch_bool) {
+            Imgproc.warpPerspective(cached_initMat, cached_rectMat_array[i], Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
+        }
     }
 
-    void GetFaces(ref Point[] source_points) {
+    void GetFaces(ref Point[] source_points, bool touch_bool) {
         for (int i = 0; i < 3; i++) { // i :: face count
             if (faceX_full[i]) { // For each valid face
                 // Build Face Point Array
@@ -287,7 +291,7 @@ public class ThreeStage_CV_Controller : MonoBehaviour
                     face_point_array[j] = source_points[src_i];
                 }
                 // Rectify and get the face texture
-                Rectify(ref face_point_array, i);
+                Rectify(ref face_point_array, i, touch_bool);
             }
         }
     }
@@ -362,7 +366,7 @@ public class ThreeStage_CV_Controller : MonoBehaviour
 
         Mat Homo_Mat = Calib3d.findHomography(regPoints, outPoints);
 
-        Imgproc.warpPerspective(rectMat_array[i], homoMat_array[i], Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
+        Imgproc.warpPerspective(cached_rectMat_array[i], homoMat_array[i], Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
     }
 
     void CombineWarped() {
@@ -394,7 +398,7 @@ public class ThreeStage_CV_Controller : MonoBehaviour
         image.Dispose();
 
         ThreeStage_AR_Controller ARC = m_ARSessionManager.GetComponent<ThreeStage_AR_Controller>();
-
+        bool touchCommand = false; 
         // Process the image here: 
         unsafe {
             IntPtr greyPtr = (IntPtr) greyscale.data.GetUnsafePtr();
@@ -405,6 +409,8 @@ public class ThreeStage_CV_Controller : MonoBehaviour
                 Touch touch = Input.GetTouch(0);
                 if (touch.phase == TouchPhase.Began)
                 {
+                    touchCommand = true; 
+
                     // Cache original image
                     Utils.copyToMat(greyPtr, cached_initMat);
 
@@ -418,16 +424,6 @@ public class ThreeStage_CV_Controller : MonoBehaviour
                         ARC.SetScreenPoints();
                         DrawScreenPoints(ARC);
                     }
-                    else { // Stage 2: 
-                        m_ImageInfo.text = String.Format("world_nulls: {0}", ARC.count_world_nulls());
-                        ARC.SetScreenPoints();
-                        DrawScreenPoints(ARC);
-
-                        proj_point_array = ARC.GetScreenpoints();
-
-                        GetFaces(ref proj_point_array);
-                        ShowFaces(img_dim);
-                    }
                     
                     Core.flip(cached_initMat, outMat, 0);
                 }
@@ -439,7 +435,11 @@ public class ThreeStage_CV_Controller : MonoBehaviour
 
         if (spa_full) { // Stage 3: 
             ARC.SetScreenPoints();
+            DrawScreenPoints(ARC);
             proj_point_array = ARC.GetScreenpoints();
+
+            GetFaces(ref proj_point_array, (touchCommand));
+            ShowFaces(img_dim);
 
             for (int i = 0; i < 3; i++) {
                 m_ImageInfo.text = String.Format("Stage 3: {0}", i);
