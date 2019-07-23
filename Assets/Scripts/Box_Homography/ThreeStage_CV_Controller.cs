@@ -37,6 +37,7 @@ public class ThreeStage_CV_Controller : MonoBehaviour
     private Mat cached_initMat = new Mat (480, 640, CvType.CV_8UC1);
     private List<Mat> corners = new List<Mat>();
     private Mat ids = new Mat(480, 640, CvType.CV_8UC1);
+    private Mat[] rectMat_array = new Mat[3];
     private Mat[] homoMat_array = new Mat[3];
 
     // Face corner indices for each face
@@ -257,7 +258,7 @@ public class ThreeStage_CV_Controller : MonoBehaviour
     }
 
     void Rectify(ref Point[] face_point_array, int i) {
-        homoMat_array[i] = new Mat (480, 640, CvType.CV_8UC1);
+        rectMat_array[i] = new Mat (480, 640, CvType.CV_8UC1);
         
         reg_point_array[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
         reg_point_array[1] = new Point(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT);
@@ -273,7 +274,7 @@ public class ThreeStage_CV_Controller : MonoBehaviour
         // Creating the H Matrix
         Mat Homo_Mat = Calib3d.findHomography(srcPoints, regPoints);
 
-        Imgproc.warpPerspective(cached_initMat, homoMat_array[i], Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
+        Imgproc.warpPerspective(cached_initMat, rectMat_array[i], Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
     }
 
     void GetFaces(ref Point[] source_points) {
@@ -304,7 +305,7 @@ public class ThreeStage_CV_Controller : MonoBehaviour
 
         if (faceX_full[0]) {
             Texture2D topTexture1 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
-            Utils.matToTexture2D(homoMat_array[0], topTexture1, false, 0);
+            Utils.matToTexture2D(rectMat_array[0], topTexture1, false, 0);
             m_TopImage1.texture = (Texture) topTexture1;
 
             m_TopImage1.SetNativeSize();
@@ -313,7 +314,7 @@ public class ThreeStage_CV_Controller : MonoBehaviour
         }
         if (faceX_full[1]) {
             Texture2D topTexture2 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
-            Utils.matToTexture2D(homoMat_array[1], topTexture2, false, 0);
+            Utils.matToTexture2D(rectMat_array[1], topTexture2, false, 0);
             m_TopImage2.texture = (Texture) topTexture2;
 
             m_TopImage2.SetNativeSize();
@@ -322,7 +323,7 @@ public class ThreeStage_CV_Controller : MonoBehaviour
         }
         if (faceX_full[2]) {
             Texture2D topTexture3 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
-            Utils.matToTexture2D(homoMat_array[2], topTexture3, false, 0);
+            Utils.matToTexture2D(rectMat_array[2], topTexture3, false, 0);
             m_TopImage3.texture = (Texture) topTexture3;
 
             m_TopImage3.SetNativeSize();
@@ -337,6 +338,37 @@ public class ThreeStage_CV_Controller : MonoBehaviour
         for (int i = 0; i < 7; i++) {
             Imgproc.circle(cached_initMat, c2_scrpoints[i], 10, new Scalar(255, 255, 0));
         }
+    }
+
+    void HomographyTransform(int i) {
+        // Init homography result Mat
+        homoMat_array[i] = new Mat (480, 640, CvType.CV_8UC1);
+
+        // Init regular point array
+        reg_point_array[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
+        reg_point_array[1] = new Point(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT);
+        reg_point_array[2] = new Point(0.0, 0.0);
+        reg_point_array[3] = new Point(HOMOGRAPHY_WIDTH, 0.0);
+
+        // Extract face_points corresponding with reg_points
+        Point[] out_point_array = new Point[4]; 
+            for (int j = 0; j < 4; j++) { // j :: face point count
+                int src_i = face_index[i, j];
+                out_point_array[j] = proj_point_array[src_i];
+            }
+
+        MatOfPoint2f regPoints = new MatOfPoint2f(reg_point_array);
+        MatOfPoint2f outPoints = new MatOfPoint2f(out_point_array);
+
+        Mat Homo_Mat = Calib3d.findHomography(regPoints, outPoints);
+
+        Imgproc.warpPerspective(rectMat_array[i], homoMat_array[i], Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
+    }
+
+    void CombineWarped() {
+        outMat = homoMat_array[0] + homoMat_array[1];
+        outMat = homoMat_array[2] + outMat; 
+        Core.flip(outMat, outMat, 0);
     }
 
     void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
@@ -361,6 +393,8 @@ public class ThreeStage_CV_Controller : MonoBehaviour
 
         image.Dispose();
 
+        ThreeStage_AR_Controller ARC = m_ARSessionManager.GetComponent<ThreeStage_AR_Controller>();
+
         // Process the image here: 
         unsafe {
             IntPtr greyPtr = (IntPtr) greyscale.data.GetUnsafePtr();
@@ -374,8 +408,6 @@ public class ThreeStage_CV_Controller : MonoBehaviour
                     // Cache original image
                     Utils.copyToMat(greyPtr, cached_initMat);
 
-                    ThreeStage_AR_Controller ARC = m_ARSessionManager.GetComponent<ThreeStage_AR_Controller>();
-
                     // if (!ARC.WorldFull()) { // Stage 1: 
                     if (!spa_full) { // Stage 1: 
                         m_ImageInfo.text = string.Format("Number of markers detected: {0} \n world_nulls {1}", 
@@ -384,14 +416,13 @@ public class ThreeStage_CV_Controller : MonoBehaviour
 
                         ARC.SetWorldPoints();
                         ARC.SetScreenPoints();
-
                         DrawScreenPoints(ARC);
                     }
                     else { // Stage 2: 
                         m_ImageInfo.text = String.Format("world_nulls: {0}", ARC.count_world_nulls());
                         ARC.SetScreenPoints();
                         DrawScreenPoints(ARC);
-                        
+
                         proj_point_array = ARC.GetScreenpoints();
 
                         GetFaces(ref proj_point_array);
@@ -406,8 +437,18 @@ public class ThreeStage_CV_Controller : MonoBehaviour
             Utils.matToTexture2D(outMat, m_Texture, false, 0);
         }
 
-        if (spa_full) {
-            // Homography shit
+        if (spa_full) { // Stage 3: 
+            ARC.SetScreenPoints();
+            proj_point_array = ARC.GetScreenpoints();
+
+            for (int i = 0; i < 3; i++) {
+                m_ImageInfo.text = String.Format("Stage 3: {0}", i);
+                HomographyTransform(i);
+            }
+
+            CombineWarped();
+
+            Utils.matToTexture2D(outMat, m_Texture, false, 0);
         }
 
         // Sets orientation of screen if necessary
