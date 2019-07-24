@@ -408,8 +408,7 @@ public class ThreeStage_CV_Controller : MonoBehaviour
                     // Cache original image
                     Utils.copyToMat(greyPtr, cached_initMat);
 
-                    // if (!ARC.WorldFull()) { // Stage 1: 
-                    if (!spa_full) { // Stage 1: 
+                    if (!spa_full) { // Stage 1: Finding World Markers
                         m_ImageInfo.text = string.Format("Number of markers detected: {0} \n world_nulls {1}", 
                             count_src_nulls(), ARC.count_world_nulls());
                         ArucoDetection();
@@ -418,7 +417,7 @@ public class ThreeStage_CV_Controller : MonoBehaviour
                         ARC.SetScreenPoints();
                         DrawScreenPoints(ARC);
                     }
-                    else { // Stage 2: 
+                    else { // Stage 2: Rectification of Captured Image Faces
                         m_ImageInfo.text = String.Format("world_nulls: {0}", ARC.count_world_nulls());
                         ARC.SetScreenPoints();
                         DrawScreenPoints(ARC);
@@ -437,7 +436,7 @@ public class ThreeStage_CV_Controller : MonoBehaviour
             Utils.matToTexture2D(outMat, m_Texture, false, 0);
         }
 
-        if (spa_full) { // Stage 3: 
+        if (spa_full) { // Stage 3: Real-time warping
             ARC.SetScreenPoints();
             proj_point_array = ARC.GetScreenpoints();
 
