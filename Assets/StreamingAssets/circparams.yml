@@ -5,21 +5,55 @@ maxThreshold: 220.
 minRepeatability: 2.
 minDistBetweenBlobs: 10.
 
-filterByColor: false
+filterByColor: true
 blobColor: 0.
 
 filterByArea: true
 minArea: 25.
-maxArea: 50000.
+maxArea: 5000.
 
-filterByCircularity: true
-minCircularity: 0.95
+filterByCircularity: false
+minCircularity: 0.8
 maxCircularity: 1.
 
 filterByInertia: true
-minInertiaRatio: 0.8
+minInertiaRatio: 0.1
 maxInertiaRatio: 1.
 
 filterByConvexity: true
-minConvexity: 0.90
+minConvexity: 0.95
 maxConvexity: 1.
+
+# filterByColor: false
+# filterByArea: false
+# filterByConvexity: false
+
+
+# thresholdStep: 20.
+# minThreshold: 10.
+# maxThreshold: 200.
+
+# filterByColor: false
+
+# filterByArea: true
+# minArea: 25
+# maxArea: 5000
+
+# filterByCircularity: true
+# minCircularity: 0.8
+
+# filterByInertia: true
+# minInertiaRatio: 0.1
+
+# filterByArea: 1
+# minArea: 30
+
+# filterByCircularity: 1
+# minCircularity: 0.9
+# maxCircularity: 1
+
+# filterByInertia: 1.
+# minInertiaRatio: 0.8
+# maxInertiaRatio: 1.
+
+# minRepeatability: 

@@ -71,9 +71,15 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/Box_Homography.unity
     guid: 5818f607718854bab8d69ed0c0f3e8a5
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Detector Homography.unity
     guid: 882f7984dde664b3bab40abc934446ca
+  - enabled: 0
+    path: Assets/ImageCaptureFolder/ImageCapture.unity
+    guid: 0c41b52fceaa8413eafd24eb8d781ea3
+  - enabled: 1
+    path: Assets/MagicLeap/Examples/Scenes/ImageCapture.unity
+    guid: be6f49865dba3435b80c78e53e77301e
   m_configObjects:
     com.unity.xr.arkit.PlayerSettings: {fileID: 11400000, guid: 2d5fb8e61571b4e3897f221189089fd6,
       type: 2}
