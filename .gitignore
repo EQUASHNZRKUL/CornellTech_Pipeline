@@ -51,7 +51,7 @@ LICENSE.md
 *.svg*
 homodemo.package
 
-*/MagicLeap/*
+*/MagicLeap/
 .out/
 */StreamingAssets/*
 Assets/StreamingAssets/
