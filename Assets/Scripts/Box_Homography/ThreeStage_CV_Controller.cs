@@ -39,6 +39,7 @@ public class ThreeStage_CV_Controller : MonoBehaviour
     private Mat ids = new Mat(480, 640, CvType.CV_8UC1);
     private Mat[] rectMat_array = new Mat[3];
     private Mat[] homoMat_array = new Mat[3];
+    // private List<Tuple<Vector3, Mat>>[] homoMat_array = new List<Tuple<Vector3, Mat>>[FACE_COUNT];
 
     // Face corner indices for each face
     private int[,] face_index = { {3, 6, 4, 5}, {0, 1, 3, 6}, {6, 1, 5, 2} };
@@ -120,6 +121,10 @@ public class ThreeStage_CV_Controller : MonoBehaviour
         Debug.Log("StartTest");
         Screen.autorotateToLandscapeLeft = true; 
         m_ARRaycastManager = GetComponent<ARRaycastManager>();
+        // for (int i = 0; i < FACE_COUNT; i++) {
+        //     homoMat_array[i] = new List<Tuple<Vector3, Mat>>();
+        // }
+
     }
 
     void OnEnable()
@@ -408,7 +413,8 @@ public class ThreeStage_CV_Controller : MonoBehaviour
                     // Cache original image
                     Utils.copyToMat(greyPtr, cached_initMat);
 
-                    if (!spa_full) { // Stage 1: Finding World Markers
+                    // if (!spa_full) { // Stage 1: Finding World Markers
+                    if (touch.position.x < image.width/2) { // Stage 1: Finding World Markers
                         m_ImageInfo.text = string.Format("Number of markers detected: {0} \n world_nulls {1}", 
                             count_src_nulls(), ARC.count_world_nulls());
                         ArucoDetection();
