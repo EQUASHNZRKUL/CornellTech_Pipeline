@@ -38,10 +38,19 @@ public class ThreeStage_AR_Controller : MonoBehaviour
         set { m_CvControllerObject = value; } 
     } 
 
+    [SerializeField]
+    Camera m_cam;
+    public Camera cameraObject 
+    {
+        get { return m_cam; }
+        set { m_cam = value; } 
+    } 
+
     private CV_Controller m_cv;
     public static float DATA_SCALE = 0.05f;
     private TrackableId cached_trackableid;
 
+    private List<Vector3> camerapos_array = new List<Vector3>();
     private Vector3[] world_points = new Vector3[7];
 
     private Point[] c1_scr_points = new Point[7];
@@ -122,35 +131,26 @@ public class ThreeStage_AR_Controller : MonoBehaviour
     // Sets the C2 screen point values from world points
     public void SetScreenPoints()
     {
-        Camera cam = GameObject.Find("AR Camera").GetComponent<Camera>();
-
         for (int i = 0; i < 7; i++)
         {
             if (world_points[i] != null) {
-                Vector3 scr_point = cam.WorldToScreenPoint(world_points[i]);
+                Vector3 scr_point = m_cam.WorldToScreenPoint(world_points[i]);
                 c2_scr_points[i] = new Point(PixelToCameraX(scr_point.x), PixelToCameraY(scr_point.y));
             }
         }
     }
 
-    void Update()
+    // Caches the camera's world points when textures are captured. 
+    public void CacheCamPoints()
     {
-        // TOUCH SECTION
-        // if (Input.touchCount > 0)
-        // {
-        //     Touch touch = Input.GetTouch(0);
-        //     if (touch.phase == TouchPhase.Began)
-        //     {
-        //         // Cache worldpoints 
-        //         SetWorldPoints(); 
-        //         Debug.LogFormat("c1 count: {0} -- world count: {1} ", count_c1_nulls(), count_world_nulls());
-        //         SetScreenPoints(); 
-        //     }
-        // }
-
-        // FRAME SECTION
-        // SetScreenPoints();
+        camerapos_array.Add(m_cam.transform.position);
     }
+
+    public void GetClosestIndex() {
+        
+    }
+
+    void Update() {}
 
     static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
     static List<ARRaycastHit> e_Hits = new List<ARRaycastHit>();
