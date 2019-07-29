@@ -45,7 +45,7 @@ public class ThreeStage_CV_Controller : MonoBehaviour
 
     // Face corner indices for each face
     private int[,] face_index = { {3, 6, 4, 5}, {0, 1, 3, 6}, {6, 1, 5, 2} };
-
+    private Vector3[] camerapos_array = new Vector3[CACHE_COUNT];
     private int rect_i = 0; 
 
     // Populated booleans
@@ -289,7 +289,6 @@ public class ThreeStage_CV_Controller : MonoBehaviour
     }
 
     void GetFaces(ref Point[] source_points) {
-        rect_i++;
         for (int i = 0; i < 3; i++) { // i :: face count
             if (faceX_full[i]) { // For each valid face
                 // Build Face Point Array
@@ -384,6 +383,36 @@ public class ThreeStage_CV_Controller : MonoBehaviour
         Core.flip(outMat, outMat, 0);
     }
 
+    // Caches the camera's world points when textures are captured. 
+    public void CacheCamPoints()
+    {
+        Debug.Log("CCP: 390");
+        Debug.Log(count_src_nulls());
+        Debug.Log(spa_full);
+        Camera cam = GameObject.Find("AR Camera").GetComponent<Camera>();
+        camerapos_array[rect_i] = (cam.transform.position);
+        Debug.Log("Incrementing rect_i");
+        rect_i++;
+    }
+
+    public int GetClosestIndex() {
+        Camera cam = GameObject.Find("AR Camera").GetComponent<Camera>();
+        Vector3 curr_cam = cam.transform.position;
+
+        int min_i = 0; 
+        float min_dist = Vector3.Distance(curr_cam, camerapos_array[0]);
+        // foreach (Vector3 camera_pos in camerapos_array) {
+        for (int i = 1; i < CACHE_COUNT; i++) {
+            Vector3 camera_pos = camerapos_array[i];
+            float dist = Vector3.Distance(curr_cam, camera_pos); 
+            if (dist < min_dist) {
+                min_dist = dist; 
+                min_i = i; 
+            }
+        }
+        return min_i; 
+    }
+
     void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
     {
         // Camera data extraction
@@ -423,6 +452,7 @@ public class ThreeStage_CV_Controller : MonoBehaviour
 
                     // if (!spa_full) { // Stage 1: Finding World Markers
                     if (touch.position.x < image.width/2) { // Stage 1: Finding World Markers
+                        m_ImageInfo.text = "Stage 1";
                         // Detect the markers (in c1 space)
                         ArucoDetection();
 
@@ -434,12 +464,10 @@ public class ThreeStage_CV_Controller : MonoBehaviour
                         DrawScreenPoints(ARC);
                     }
                     else { // Stage 2: Rectification of Captured Image Faces
+                        m_ImageInfo.text = "Stage 2";
                         // Extract c2 points and draw onto output
                         ARC.SetScreenPoints();
                         DrawScreenPoints(ARC);
-
-                        // Caching the c2 world position
-                        ARC.CacheCamPoints();
 
                         // Getting dest points
                         proj_point_array = ARC.GetScreenpoints();
@@ -447,6 +475,11 @@ public class ThreeStage_CV_Controller : MonoBehaviour
                         // Rectify Faces and Display them
                         GetFaces(ref proj_point_array);
                         ShowFaces(img_dim);
+                        
+                        if (spa_full) {
+                            Debug.LogFormat("OCFR 478: {0}", count_src_nulls());
+                            CacheCamPoints();
+                        }
                     }
                     
                     Core.flip(cached_initMat, outMat, 0);
@@ -463,15 +496,16 @@ public class ThreeStage_CV_Controller : MonoBehaviour
             proj_point_array = ARC.GetScreenpoints();
 
             // Get the closest camera position
-            int closest_capture = ARC.GetClosestIndex();
+            int closest_capture = GetClosestIndex();
 
             // Warp rectified closest capture Mats for each face dependent on current position
             for (int i = 0; i < 3; i++) {
-                m_ImageInfo.text = String.Format("Stage 3: {0}", i);
+                m_ImageInfo.text = String.Format("closest_capture : {0}\n rect_i : {1} \n Stage 3: {2}", 
+                    closest_capture, rect_i, i);
                 HomographyTransform(i, closest_capture);
             }
 
-            m_ImageInfo.text = String.Format("closest_capture : {0}", closest_capture);
+            m_ImageInfo.text = String.Format("closest_capture : {0}\n rect_i : {1}", closest_capture, rect_i);
 
             // Combined the warped images into one image
             CombineWarped();
