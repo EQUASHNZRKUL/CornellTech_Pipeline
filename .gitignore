@@ -49,3 +49,9 @@ sysinfo.txt
 .DS_Store
 LICENSE.md
 *.svg*
+homodemo.package
+
+*/MagicLeap/
+.out/
+*/StreamingAssets/*
+Assets/StreamingAssets/
