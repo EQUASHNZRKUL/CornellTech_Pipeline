@@ -146,8 +146,21 @@ public class ThreeStage_AR_Controller : MonoBehaviour
         camerapos_array.Add(m_cam.transform.position);
     }
 
-    public void GetClosestIndex() {
-        
+    public int GetClosestIndex() {
+        Vector3 curr_cam = m_cam.transform.position;
+
+        int min_i = 0; 
+        int i = 0; 
+        float min_dist = Vector3.Distance(curr_cam, camerapos_array[0]);
+        foreach (Vector3 camera_pos in camerapos_array) {
+            i++; 
+            float dist = Vector3.Distance(curr_cam, camera_pos); 
+            if (dist < min_dist) {
+                min_dist = dist; 
+                min_i = i; 
+            }
+        }
+        return min_i; 
     }
 
     void Update() {}
