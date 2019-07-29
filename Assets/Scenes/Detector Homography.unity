@@ -1111,6 +1111,7 @@ MonoBehaviour:
   m_ARCameraManager: {fileID: 282840816}
   m_PlacedPrefab: {fileID: 810411181}
   m_CvControllerObject: {fileID: 515354191}
+  m_cam: {fileID: 282840813}
 --- !u!1 &1567748680
 GameObject:
   m_ObjectHideFlags: 0

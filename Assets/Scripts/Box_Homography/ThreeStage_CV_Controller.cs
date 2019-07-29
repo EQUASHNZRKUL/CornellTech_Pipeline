@@ -30,6 +30,8 @@ public class ThreeStage_CV_Controller : MonoBehaviour
     public static int K_ITERATIONS = 10;
     public static double HOMOGRAPHY_WIDTH = 640.0;
     public static double HOMOGRAPHY_HEIGHT = 480.0;
+    public static int FACE_COUNT = 3; 
+    public static int CACHE_COUNT = 5;
 
     // CV Mats
     public Mat imageMat = new Mat(480, 640, CvType.CV_8UC1);
@@ -37,12 +39,14 @@ public class ThreeStage_CV_Controller : MonoBehaviour
     private Mat cached_initMat = new Mat (480, 640, CvType.CV_8UC1);
     private List<Mat> corners = new List<Mat>();
     private Mat ids = new Mat(480, 640, CvType.CV_8UC1);
-    private Mat[] rectMat_array = new Mat[3];
-    private Mat[] homoMat_array = new Mat[3];
+    private Mat[,] rectMat_array = new Mat[FACE_COUNT, CACHE_COUNT];
+    private Mat[] homoMat_array = new Mat[FACE_COUNT];
     // private List<Tuple<Vector3, Mat>>[] homoMat_array = new List<Tuple<Vector3, Mat>>[FACE_COUNT];
 
     // Face corner indices for each face
     private int[,] face_index = { {3, 6, 4, 5}, {0, 1, 3, 6}, {6, 1, 5, 2} };
+
+    private int rect_i = 0; 
 
     // Populated booleans
     public bool spa_full = false; 
@@ -262,8 +266,9 @@ public class ThreeStage_CV_Controller : MonoBehaviour
         }
     }
 
+    // Rectifies the current image with [face_point_array] and stores as face [i] in rectMat_array[, rect_i].
     void Rectify(ref Point[] face_point_array, int i) {
-        rectMat_array[i] = new Mat (480, 640, CvType.CV_8UC1);
+        rectMat_array[i, rect_i] = new Mat (480, 640, CvType.CV_8UC1);
         
         reg_point_array[0] = new Point(0.0, HOMOGRAPHY_HEIGHT);
         reg_point_array[1] = new Point(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT);
@@ -279,10 +284,12 @@ public class ThreeStage_CV_Controller : MonoBehaviour
         // Creating the H Matrix
         Mat Homo_Mat = Calib3d.findHomography(srcPoints, regPoints);
 
-        Imgproc.warpPerspective(cached_initMat, rectMat_array[i], Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
+        Imgproc.warpPerspective(cached_initMat, rectMat_array[i, rect_i], Homo_Mat, 
+            new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
     }
 
     void GetFaces(ref Point[] source_points) {
+        rect_i++;
         for (int i = 0; i < 3; i++) { // i :: face count
             if (faceX_full[i]) { // For each valid face
                 // Build Face Point Array
@@ -310,7 +317,7 @@ public class ThreeStage_CV_Controller : MonoBehaviour
 
         if (faceX_full[0]) {
             Texture2D topTexture1 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
-            Utils.matToTexture2D(rectMat_array[0], topTexture1, false, 0);
+            Utils.matToTexture2D(rectMat_array[0, rect_i], topTexture1, false, 0);
             m_TopImage1.texture = (Texture) topTexture1;
 
             m_TopImage1.SetNativeSize();
@@ -319,7 +326,7 @@ public class ThreeStage_CV_Controller : MonoBehaviour
         }
         if (faceX_full[1]) {
             Texture2D topTexture2 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
-            Utils.matToTexture2D(rectMat_array[1], topTexture2, false, 0);
+            Utils.matToTexture2D(rectMat_array[1, rect_i], topTexture2, false, 0);
             m_TopImage2.texture = (Texture) topTexture2;
 
             m_TopImage2.SetNativeSize();
@@ -328,7 +335,7 @@ public class ThreeStage_CV_Controller : MonoBehaviour
         }
         if (faceX_full[2]) {
             Texture2D topTexture3 = new Texture2D((int) img_dim.x, (int) img_dim.y, TextureFormat.RGBA32, false);
-            Utils.matToTexture2D(rectMat_array[2], topTexture3, false, 0);
+            Utils.matToTexture2D(rectMat_array[2, rect_i], topTexture3, false, 0);
             m_TopImage3.texture = (Texture) topTexture3;
 
             m_TopImage3.SetNativeSize();
@@ -345,7 +352,8 @@ public class ThreeStage_CV_Controller : MonoBehaviour
         }
     }
 
-    void HomographyTransform(int i) {
+    // Warps rectified face [i] from capture [j] wrt current position
+    void HomographyTransform(int i, int capture) {
         // Init homography result Mat
         homoMat_array[i] = new Mat (480, 640, CvType.CV_8UC1);
 
@@ -367,7 +375,7 @@ public class ThreeStage_CV_Controller : MonoBehaviour
 
         Mat Homo_Mat = Calib3d.findHomography(regPoints, outPoints);
 
-        Imgproc.warpPerspective(rectMat_array[i], homoMat_array[i], Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
+        Imgproc.warpPerspective(rectMat_array[i, capture], homoMat_array[i], Homo_Mat, new Size(HOMOGRAPHY_WIDTH, HOMOGRAPHY_HEIGHT));
     }
 
     void CombineWarped() {
@@ -415,21 +423,28 @@ public class ThreeStage_CV_Controller : MonoBehaviour
 
                     // if (!spa_full) { // Stage 1: Finding World Markers
                     if (touch.position.x < image.width/2) { // Stage 1: Finding World Markers
-                        m_ImageInfo.text = string.Format("Number of markers detected: {0} \n world_nulls {1}", 
-                            count_src_nulls(), ARC.count_world_nulls());
+                        // Detect the markers (in c1 space)
                         ArucoDetection();
 
+                        // Raycast and get World points
                         ARC.SetWorldPoints();
+
+                        // (For Testing) Extract c2 points and draw onto output. 
                         ARC.SetScreenPoints();
                         DrawScreenPoints(ARC);
                     }
                     else { // Stage 2: Rectification of Captured Image Faces
-                        m_ImageInfo.text = String.Format("world_nulls: {0}", ARC.count_world_nulls());
+                        // Extract c2 points and draw onto output
                         ARC.SetScreenPoints();
                         DrawScreenPoints(ARC);
 
+                        // Caching the c2 world position
+                        ARC.CacheCamPoints();
+
+                        // Getting dest points
                         proj_point_array = ARC.GetScreenpoints();
 
+                        // Rectify Faces and Display them
                         GetFaces(ref proj_point_array);
                         ShowFaces(img_dim);
                     }
@@ -443,16 +458,25 @@ public class ThreeStage_CV_Controller : MonoBehaviour
         }
 
         if (spa_full) { // Stage 3: Real-time warping
+            // Get c2 screenpoints
             ARC.SetScreenPoints();
             proj_point_array = ARC.GetScreenpoints();
 
+            // Get the closest camera position
+            int closest_capture = ARC.GetClosestIndex();
+
+            // Warp rectified closest capture Mats for each face dependent on current position
             for (int i = 0; i < 3; i++) {
                 m_ImageInfo.text = String.Format("Stage 3: {0}", i);
-                HomographyTransform(i);
+                HomographyTransform(i, closest_capture);
             }
 
+            m_ImageInfo.text = String.Format("closest_capture : {0}", closest_capture);
+
+            // Combined the warped images into one image
             CombineWarped();
 
+            // Display the combined image
             Utils.matToTexture2D(outMat, m_Texture, false, 0);
         }
 
